@@ -1,0 +1,5 @@
+reccord = struct en OCAML 
+type t = { v1 int; 
+		     string }
+		    
+Module Option , ne pas se baser sur une 
