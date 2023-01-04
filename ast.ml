@@ -27,25 +27,47 @@ blocType =
 	BlocLInst of instructionType list 
 	| BlocDecl of (declType list * instructionType list) 
 
-type objetType (*= 
-	Classe of (string*paramType list*
-	ObjetIsole of
-	
+(*
+type champsType = Champs of (	champsType list * methodeType list)
+*)
+
+(*
+type corpsType = Corps of (	champsType list * methodeType list)
+*)
+
+(*
 type classeType = 
 {	nom : string;
 	listParam : (string*string) list
-	OHeritage :
-	OConstruct :
-	corp : 
+	OHeritage : heritageType option
+	OConstruct : blocType option
+	corps : corpsType
 }
+*)
 
+(*
+type objetIsoleType = 
+{	nom : string
+	OConstruct : blocType option
+	corps : corpsType
+}
+*)
+
+type objetType (*= 
+	Classe of classeType
+	| ObjetIsole of objetIsoleType
+*)
+	
+
+
+(*
 type paramType = Param of (string * string)
  *)
 
 type progType = Prog of (objetType list * blocType)
 	
 (* 
-type membreType = Attribut of (expType*string)
+type membreType = Attrib of (expType*string)
 
 type cibleType = 
 	|Result
