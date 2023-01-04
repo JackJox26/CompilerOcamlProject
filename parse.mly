@@ -41,8 +41,8 @@ lInstruc:
 | i= instruc l= lInstruc    { i::l }
 
 lDeclVar:
-| d= declVar                { d }
-| d= declVar l= lDeclVal    {  }
+| d= declVar                { [d] }
+| d= declVar l= lDeclVal    { d::l }
 
 declVar:
 | l=lIdent t=type           { Decl(l,t) }
