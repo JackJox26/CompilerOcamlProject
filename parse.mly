@@ -50,6 +50,7 @@ lInstruc:
 instruc:
 | bloc                  {}
 | RETURN POINTVIRGULE   {}(*| e= expr POINTVIRGULE                                  {}*)
+(*| e= expr POINTVIRGULE                                  {}*)
 | b= bloc                                               { Bloc(b) }
 | RETURN POINTVIRGULE                                   { Return }
 (*| IF e= expr THEN i1= instruc ELSE i2= instruc          {}
