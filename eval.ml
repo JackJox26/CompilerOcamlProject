@@ -19,7 +19,7 @@ open Ast
 let surcharge class1 =
   let rec sur_aux class1 lmethods classTemp res=
     match e with 
-      Object x ->
+      typeClass x ->
         match x with
           if not (Override) then raise (Error "il y a d'override donc surcharge impossible")
         
