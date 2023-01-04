@@ -1,4 +1,10 @@
-type op
+type opType =
+	PGE
+	|PG
+	|PPE
+	|PP
+	|EGAL
+	|NEGAL
 
 (*
 type expType =
@@ -28,7 +34,7 @@ blocType =
 	| BlocDecl of (declType list * instructionType list) 
 
 (*
-type champsType = Champs of (	champsType list * methodeType list)
+type champsType = Champs of paramType
 *)
 
 (*
