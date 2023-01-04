@@ -12,8 +12,7 @@ open Ast
 %token AFFECT
 %token IF THEN ELSE
 %token IS VAR
-%token AUTO DEF NEW RETURN
-%token <Ast.objetType> OBJECT
+%token AUTO DEF NEW OBJECT RETURN
 %token EOF
 
 
@@ -34,7 +33,8 @@ bloc:
 | ACCOLADE_G ld= lDeclVar IS li= lInstruc ACCOLADE_D    { BlocDecl(ld,li) }
 
 optLInstruc:
-| l=optLInstruc             { l }
+|                           { [] }
+| l= lInstruc               { l }
 
 lInstruc:
 | i= instruc                { [i] }
