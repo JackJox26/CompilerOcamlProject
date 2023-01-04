@@ -12,16 +12,20 @@ type expType =
 	|PlusU of expType
 	|MoinsU of expType
 *)
+type typeType = Type of string
 
-type instructionType : 
+type declType = Decl of (string list * typeType)
+
+type instructionType = 
 	(*Exp of expType
 	| *) Bloc of blocType 
 	(*| IfThenElse of (expType*instructionType*instructionType) *) 
 	| Return
 
-type blocType = 
+and
+blocType = 
 	BlocLInst of instructionType list 
-	| BlocDecl of (decl list * instructionType list) 
+	| BlocDecl of (declType list * instructionType list) 
 
 type objetType (*= 
 	Classe of (string*paramType list*
@@ -32,12 +36,13 @@ type classeType =
 	listParam : (string*string) list
 	OHeritage :
 	OConstruct :
+	corp : 
 }
 
 type paramType = Param of (string * string)
  *)
 
-type progType = Prog of (objetType list * programme: blocType)
+type progType = Prog of (objetType list * blocType)
 	
 (* 
 type membreType = Attribut of (expType*string)
