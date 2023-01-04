@@ -16,18 +16,27 @@ open Ast
 %start<Ast.progType> prog
 %%
 (* verifie si l'expression renvoie pas  *)
-let surcharge e lmethods =
-  let rec sur_aux e lmethods classTemp res=
+let surcharge class1 =
+  let rec sur_aux class1 lmethods classTemp res=
     match e with 
       Object x ->
-        match x with 
+        match x with
+        
+
+
+
+
+
+
+
       |Cste v -> ()
       | Plus(g, d) | Minus (g, d) | Times (g, d) | Div (g, d) ->
         sur_aux g lmethods classTemp res;
         sur_aux g lmethods classTemp res;
+      |Uminus e -> 
+        sur_aux e
         else lmethods = 
   in r
 
 type grid = int list list
 let methodClass e =
-    let
