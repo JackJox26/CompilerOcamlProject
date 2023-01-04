@@ -7,7 +7,7 @@ open Ast
 %token PLUS MOINS MUL DIV UMOINS
 %token PARENT_G PARENT_D
 %token ACCOLADE_G ACCOLADE_D
-%token POINTVIRGULE DEUXPOINTS POINT
+%token VIRGULE POINTVIRGULE DEUXPOINTS POINT
 %token CONCAT
 %token AFFECT
 %token IF THEN ELSE
@@ -26,9 +26,12 @@ prog:
 lObjets:
 |                           { [] }
 
+type:
+| DEUXPOINTS s= ID          { Id(s) }
+
 bloc:
 | ACCOLADE_G o= optLInstruc ACCOLADE_D                  { BlocLInst(o) }
-| ACCOLADE_G ld= lDecLVal IS li= lInstruc ACCOLADE_D    { BlocDecl(ld,li) }
+| ACCOLADE_G ld= lDeclVar IS li= lInstruc ACCOLADE_D    { BlocDecl(ld,li) }
 
 optLInstruc:
 | l=optLInstruc             { l }
@@ -36,6 +39,17 @@ optLInstruc:
 lInstruc:
 | i= instruc                { [i] }
 | i= instruc l= lInstruc    { i::l }
+
+lDeclVar:
+| d= declVar                { [d] }
+| d= declVar l= lDeclVal    { d::l }
+
+declVar:
+| l=lIdent t=type           { Decl(l,t) }
+
+lIdent:
+| s= ID                     { [s] }
+| s= ID, l= lIdent          { s::l }
 
 instruc:
 (*| e= expr POINTVIRGULE                                  { e }*)
