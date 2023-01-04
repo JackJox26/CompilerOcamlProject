@@ -14,7 +14,7 @@ type expType =
 *)
 type typeType = Type of string
 
-type decl = Decl of (string list * typeType)
+type declType = Decl of (string list * typeType)
 
 type instructionType = 
 	(*Exp of expType
@@ -25,7 +25,7 @@ type instructionType =
 and
 blocType = 
 	BlocLInst of instructionType list 
-	| BlocDecl of (decl list * instructionType list) 
+	| BlocDecl of (declType list * instructionType list) 
 
 type objetType (*= 
 	Classe of (string*paramType list*
