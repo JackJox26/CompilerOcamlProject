@@ -22,9 +22,7 @@ let surcharge class1 =
       Object x ->
         match x with
           if not (Override) then raise (Error "il y a d'override donc surcharge impossible")
-
-
-
+        
 
 
 
@@ -36,7 +34,14 @@ let surcharge class1 =
       |Uminus e -> 
         sur_aux e
         else lmethods = 
-  in r
+  in sur_aux class1 class1:methods classTemp res
 
-type grid = int list list
-let methodClass e =
+  module AssocListDict = struct
+    type ('k, 'v) t = ('k * 'v) list
+  
+    let empty = []
+  
+    let insert k v d = (k,v)::d
+  
+    let lookup k d = List.assoc k d
+  end
