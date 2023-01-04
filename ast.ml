@@ -37,7 +37,7 @@ type classeType =
 type paramType = Param of (string * string)
  *)
 
-type progType = Prog of (objetType list * programme: blocType)
+type progType = Prog of (objetType list * blocType)
 	
 (* 
 type membreType = Attribut of (expType*string)
