@@ -21,7 +21,7 @@ let surcharge class1 =
     match e with 
       Object x ->
         match x with
-        
+          if not (Override) then raise (Error "il y a d'override donc surcharge impossible")
 
 
 
