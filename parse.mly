@@ -26,8 +26,8 @@ prog:
 lObjets:
 |                           { [] }
 
-type:
-| DEUXPOINTS s= ID          { Id(s) }
+deType:
+| DEUXPOINTS s= ID          { Type(s) }
 
 bloc:
 | ACCOLADE_G o= optLInstruc ACCOLADE_D                  { BlocLInst(o) }
@@ -45,11 +45,11 @@ lDeclVar:
 | d= declVar l= lDeclVal    { d::l }
 
 declVar:
-| l=lIdent t=type           { Decl(l,t) }
+| l=lIdent t=deType           { Decl(l,t) }
 
 lIdent:
 | s= ID                     { [s] }
-| s= ID, l= lIdent          { s::l }
+| s= ID VIRGULE l= lIdent          { s::l }
 
 instruc:
 (*| e= expr POINTVIRGULE                                  { e }*)
