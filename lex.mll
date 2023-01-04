@@ -65,6 +65,7 @@ rule
   | ';' { POINTVIRGULE }
   | ':' { DEUXPOINTS }
   | '.' { POINT }
+  | ',' { VIRGULE }
 
   | '{' { ACCOLADE_G }
   | '}' { ACCOLADE_D }
@@ -107,6 +108,5 @@ and
                      token lexbuf
                   }
   | _             { comment lexbuf }
-
 
 
