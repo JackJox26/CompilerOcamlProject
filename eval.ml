@@ -25,6 +25,8 @@ let surcharge e lmethods =
         match x with 
       |Cste v -> ()
       | Plus(g, d) | Minus (g, d) | Times (g, d) | Div (g, d) ->
+        sur_aux g lmethods classTemp res;
+        sur_aux g lmethods classTemp res;
         else lmethods = 
   in r
 
