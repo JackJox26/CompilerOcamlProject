@@ -17,6 +17,8 @@ let _ =
         "else", ELSE;
         "is", IS;
         "var", VAR;
+        "class", CLASS;
+        "extends", EXTENDS;
         "auto", AUTO;
         "def", DEF;
         "new", NEW;
