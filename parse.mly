@@ -22,35 +22,24 @@ open Ast
 %start<Ast.progType> prog
 %%
 prog:
-| lObjets b=bloc EOF      {}
 | l= lObjets b= bloc EOF    { Prog(l,b) }
 
 lObjets:
-|                       {}
 |                           { [] }
 
 bloc:
-| ACCOLADE_G o=optLInstruc ACCOLADE_D             {}
-| ACCOLADE_G lDecLVal IS lInstruc ACCOLADE_D    {}
 | ACCOLADE_G o= optLInstruc ACCOLADE_D                  { BlocLInst(o) }
 | ACCOLADE_G ld= lDecLVal IS li= lInstruc ACCOLADE_D    { BlocDecl(ld,li) }
 
 optLInstruc:
-|                       {}
 | optLInstruc           {}
-|                           { [] }
 | l=optLInstruc             { l }
 
 lInstruc:
-| instruc               {}
-| instruc lInstruc      {}
 | i= instruc                { [i] }
 | i= instruc l= lInstruc    { i::l }
 
 instruc:
-| bloc                  {}
-| RETURN POINTVIRGULE   {}(*| e= expr POINTVIRGULE                                  {}*)
-(*| e= expr POINTVIRGULE                                  {}*)
 | b= bloc                                               { Bloc(b) }
 | RETURN POINTVIRGULE                                   { Return }
 (*| IF e= expr THEN i1= instruc ELSE i2= instruc          {}
