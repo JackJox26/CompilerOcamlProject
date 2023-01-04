@@ -1,6 +1,5 @@
-%{
   open Ast
-%}
+
 
 
 %token <string> ID
