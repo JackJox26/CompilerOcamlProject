@@ -1,6 +1,4 @@
-  open Ast
-
-
+open Ast
 
 %token <string> ID
 %token <int> CSTE
