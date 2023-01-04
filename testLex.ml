@@ -1,6 +1,6 @@
 open Lexing
 open Ast
-open TpParse
+open Parse
 
 let output token =
     match token with
