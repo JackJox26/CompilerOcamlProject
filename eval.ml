@@ -22,11 +22,12 @@ let surcharge e lmethods =
   let rec sur_aux e lmethods classTemp res=
     match e with 
       Object x ->
-        match x 
-          
+        match x with 
+      |Cste v -> ()
+      | Plus(g, d) | Minus (g, d) | Times (g, d) | Div (g, d) ->
         else lmethods = 
   in r
 
 type grid = int list list
 let methodClass e =
-    let meg
+    let
