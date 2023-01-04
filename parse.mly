@@ -12,6 +12,7 @@ open Ast
 %token AFFECT
 %token IF THEN ELSE
 %token IS VAR
+%token CLASS EXTENDS
 %token AUTO DEF NEW OBJECT RETURN
 %token EOF
 
@@ -45,17 +46,17 @@ lDeclVar:
 | d= declVar l= lDeclVal    { d::l }
 
 declVar:
-| l=lIdent t=deType           { Decl(l,t) }
+| l=lIdent t=deType         { Decl(l,t) }
 
 lIdent:
 | s= ID                     { [s] }
-| s= ID VIRGULE l= lIdent          { s::l }
+| s= ID VIRGULE l= lIdent   { s::l }
 
 instruc:
-(*| e= expr POINTVIRGULE                                  { e }*)
+| e= expr POINTVIRGULE                                  { e }
 | b= bloc                                               { Bloc(b) }
 | RETURN POINTVIRGULE                                   { Return }
-(*| IF e= expr THEN i1= instruc ELSE i2= instruc        { IfThenElse(e,i1,i2) }
+| IF e= expr THEN i1= instruc ELSE i2= instruc          { IfThenElse(e,i1,i2) }
 
 expr:
 | s= ID                     { Id(s) }
@@ -66,4 +67,3 @@ expr:
 | e1= expr DIV e2= expr     { Div(e1,e2) }
 | PLUS e= expr              { PlusU(e) }
 | MOINS e= expr             { MoinsU(e) }
-*)
