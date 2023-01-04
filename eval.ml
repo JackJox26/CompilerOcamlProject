@@ -17,7 +17,7 @@
 
 %start<Ast.progType> prog
 %%
-verifie si l'expression renvoie pas 
+(* verifie si l'expression renvoie pas  *)
 let surcharge e lmethods =
   let rec sur_aux e lmethods classTemp res=
     match e with 
@@ -29,4 +29,4 @@ let surcharge e lmethods =
 
 type grid = int list list
 let methodClass e =
-    let me
+    let meg
