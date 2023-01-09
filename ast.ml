@@ -4,7 +4,7 @@ type opType =
     |PPE
     |PP
     |EGAL
-    |NEGALtfuguy
+    |NEGAL
 
 
 type expType =
