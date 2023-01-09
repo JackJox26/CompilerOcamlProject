@@ -24,4 +24,4 @@ compileur: parse.mli $(SOURCES)
 	ocamlc -o compileur $(SOURCES)
 
 clean:
-	rm -rf  tp testLex *.o *.cmi *.cmo *.cmx *~ $(GENERATED) out.txt
+	rm -rf  tp testLex compileur *.o *.cmi *.cmo *.cmx *~ $(GENERATED) out.txt
