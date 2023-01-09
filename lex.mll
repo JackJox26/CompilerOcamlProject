@@ -28,9 +28,11 @@ let _ =
 }
 
 (* abréviation utiles pour les expressions rationnelles *)
+let delim_str = '"'
 let lettre = ['A'-'Z' 'a'-'z']
 let chiffre = ['0'-'9']
 let LC = ( chiffre | lettre )
+let char_valide = [' '-'~']
 
 
 (* l'analyseur lexical est decomposé ici en deux fonctions: l'une qui est
@@ -47,9 +49,11 @@ rule
                             Not_found ->                        
                                 ID id 
                         }
+
+
   | [' ''\t''\r']        { token lexbuf }     (* skip blanks *)
   | '\n'                 { next_line lexbuf; token lexbuf}
-  | "/*"		 { 
+  | "/*"		 {
                             (* lance la fonction specialisée dans la
                              * reconnaissance des commentaires
                              *)
@@ -59,6 +63,11 @@ rule
  * significatif
  *)
   | chiffre * as i { CSTE (int_of_string i) }
+
+(*Detecteur de string*)
+  | delim_str ((char_valide *) as _str) delim_str {
+                         STR _str
+                        }
 
   | ":=" { AFFECT }
 
@@ -110,5 +119,8 @@ and
                      token lexbuf
                   }
   | _             { comment lexbuf }
+
+
+
 
 
