@@ -26,6 +26,11 @@ prog:
 
 lObjets:
 |                           { [] }
+| objet l= lObjets          { l }
+
+objet:
+| c= classe                 {  }
+| o= objetIsole             {  }
 
 deType:
 | DEUXPOINTS s= ID          { Type(s) }
