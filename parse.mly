@@ -43,7 +43,7 @@ lInstruc:
 
 lDeclVar:
 | d= declVar                { [d] }
-| d= declVar l= lDeclVal    { d::l }
+| d= declVar l= lDeclVar    { d::l }
 
 declVar:
 | l=lIdent t=deType         { Decl(l,t) }
