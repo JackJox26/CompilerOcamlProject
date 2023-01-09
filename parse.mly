@@ -20,7 +20,10 @@ open Ast
 
 (* l'axiome est aussi le nom de la fonction a appeler pour faire l'analyse syntaxique *)
 %start<Ast.progType> prog
+%type <heritageType option> heritage
 %%
+
+
 prog:
 | l=lObjets b=bloc EOF      { Prog(l,b) }
 
@@ -33,10 +36,19 @@ objet:
 | o=objetIsole              { ObjetIsole(o) }
 
 classe:
-| CLASS s=ID PARENT_G l=optLParam PARENT_D h=heritage b=optBloc c=corpsObjet        { nom=s ; listParam=l ; oHeritage=option(h) ; oConstruct=b ; corps=c }
+| CLASS s=nomClasse PARENT_G l=optLParam PARENT_D (* h=option(heritage) b=optBloc c=corpsObjet *)        { { nomClasse=s ; listParam=l (* ; oHeritage=h ; oConstruct=option(b) ; corps=c *) } }
+
+nomClasse:
+| s=ID                      { (*TODO*) }
 
 corpsObjet:
-| IS ACCOLADE_G l1=lChamp l2=lMethode ACCOLADE_D        { Corps(l1,l2) }
+| IS ACCOLADE_G lc=lChamp lm=lMethode ACCOLADE_D        { Corps(lc,lm) }
+
+lChamp:
+| {}
+
+lMethode:
+| {}
 
 heritage:
 | EXTENDS s=ID PARENT_G l=optLParam PARENT_D            { Heritage() }
