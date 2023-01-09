@@ -25,7 +25,7 @@ prog:
 lObjets:
 |                           { [] }
 
-type:
+deType:
 | DEUXPOINTS s= ID          { Id(s) }
 
 bloc:
