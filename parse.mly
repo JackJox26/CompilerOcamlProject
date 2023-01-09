@@ -17,7 +17,6 @@ open Ast
 %token AUTO DEF NEW RETURN OBJECT
 %token EOF
 
-(*111*)
 
 
 (* l'axiome est aussi le nom de la fonction a appeler pour faire l'analyse syntaxique *)
