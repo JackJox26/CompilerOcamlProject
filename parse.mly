@@ -3,6 +3,7 @@ open Ast
 %}
 %token <string> ID
 %token <int> CSTE
+%token <string> STR
 %token <Ast.opType> OPERATEUR
 %token PLUS MOINS MUL DIV UMOINS
 %token PARENT_G PARENT_D
@@ -35,7 +36,7 @@ bloc:
 
 optLInstruc:
 |                           { [] }
-| l=lInstruc             { l }
+| l=lInstruc                { l }
 
 lInstruc:
 | i= instruc                { [i] }
@@ -53,18 +54,19 @@ lIdent:
 | s= ID VIRGULE l= lIdent   { s::l }
 
 instruc:
-(*| e= expr POINTVIRGULE                                { e }*)
+| e= expr POINTVIRGULE                                  { Exp(e) }
 | b= bloc                                               { Bloc(b) }
 | RETURN POINTVIRGULE                                   { Return }
-(*| IF e= expr THEN i1= instruc ELSE i2= instruc        { IfThenElse(e,i1,i2) }
+| IF e= expr THEN i1= instruc ELSE i2= instruc          { IfThenElse(e,i1,i2) }
 
 expr:
 | s= ID                     { Id(s) }
 | v= CSTE                   { Cste(v) }
+| s= STR                    { Str(s) }
 | e1= expr PLUS e2= expr    { Plus(e1,e2) }
 | e1= expr MOINS e2= expr   { Moins(e1,e2) }
 | e1= expr MUL e2= expr     { Mult(e1,e2) }
 | e1= expr DIV e2= expr     { Div(e1,e2) }
+| e1= expr CONCAT e2= expr  { Concat(e1,e2) }
 | PLUS e= expr              { PlusU(e) }
 | MOINS e= expr             { MoinsU(e) }
-*)
