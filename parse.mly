@@ -13,7 +13,7 @@ open Ast
 %token IF THEN ELSE
 %token IS VAR
 %token AUTO DEF NEW RETURN
-%token <Ast.objetType> OBJECT
+%token OBJECT
 %token EOF
 
 
@@ -26,15 +26,16 @@ prog:
 lObjets:
 |                           { [] }
 
-type:
-| DEUXPOINTS s= ID          { Id(s) }
+deType:
+| DEUXPOINTS s= ID          { Type(s) }
 
 bloc:
 | ACCOLADE_G o= optLInstruc ACCOLADE_D                  { BlocLInst(o) }
 | ACCOLADE_G ld= lDeclVar IS li= lInstruc ACCOLADE_D    { BlocDecl(ld,li) }
 
 optLInstruc:
-| l=optLInstruc             { l }
+|  { [] }
+| l=lInstruc             { l }
 
 lInstruc:
 | i= instruc                { [i] }
@@ -42,14 +43,14 @@ lInstruc:
 
 lDeclVar:
 | d= declVar                { [d] }
-| d= declVar l= lDeclVal    { d::l }
+| d= declVar l= lDeclVar    { d::l }
 
 declVar:
-| l=lIdent t=type           { Decl(l,t) }
+| l=lIdent t=deType           { Decl(l,t) }
 
 lIdent:
 | s= ID                     { [s] }
-| s= ID, l= lIdent          { s::l }
+| s= ID VIRGULE l= lIdent          { s::l }
 
 instruc:
 (*| e= expr POINTVIRGULE                                  { e }*)
