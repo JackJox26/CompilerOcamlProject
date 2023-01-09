@@ -17,7 +17,7 @@ open Ast
 %token AUTO DEF NEW RETURN OBJECT
 %token EOF
 
-%left PLUS MOINS
+%left PLUS MOINS CONCAT
 %left MUL DIV
 %left UPLUS UMOINS
 
