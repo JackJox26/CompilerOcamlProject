@@ -17,6 +17,8 @@ let _ =
         "else", ELSE;
         "is", IS;
         "var", VAR;
+        "class", CLASS;
+        "extends", EXTENDS;
         "auto", AUTO;
         "def", DEF;
         "new", NEW;
@@ -75,12 +77,12 @@ rule
   | '*' { MUL }
   | '/' { DIV }
 
-  | '>' { PG }
-  | ">=" { PGE }
-  | '<' { PP }
-  | "<=" { PPE }
-  | '=' { EGAL }
-  | "<>" { NEGAL }
+  | '>' { OPERATEUR(Ast.PG) }
+  | ">=" { OPERATEUR(Ast.PGE) }
+  | '<' { OPERATEUR(Ast.PP) }
+  | "<=" { OPERATEUR(Ast.PPE) }
+  | '=' { OPERATEUR(Ast.EGAL) }
+  | "<>" { OPERATEUR(Ast.NEGAL) }
 
   | '&' { CONCAT }
 

@@ -12,8 +12,7 @@ open Ast
 %token AFFECT
 %token IF THEN ELSE
 %token IS VAR
-%token CLASS EXTENDS
-%token AUTO DEF NEW OBJECT RETURN
+%token AUTO DEF NEW RETURN OBJECT
 %token EOF
 
 
@@ -26,8 +25,8 @@ prog:
 lObjets:
 |                           { [] }
 
-deType:
-| DEUXPOINTS s= ID          { Type(s) }
+type:
+| DEUXPOINTS s= ID          { Id(s) }
 
 bloc:
 | ACCOLADE_G o= optLInstruc ACCOLADE_D                  { BlocLInst(o) }
@@ -35,7 +34,7 @@ bloc:
 
 optLInstruc:
 |                           { [] }
-| l= lInstruc               { l }
+| l=optLInstruc             { l }
 
 lInstruc:
 | i= instruc                { [i] }
@@ -43,7 +42,7 @@ lInstruc:
 
 lDeclVar:
 | d= declVar                { [d] }
-| d= declVar l= lDeclVal    { d::l }
+| d= declVar l= lDeclVar    { d::l }
 
 declVar:
 | l=lIdent t=deType         { Decl(l,t) }
@@ -53,10 +52,10 @@ lIdent:
 | s= ID VIRGULE l= lIdent   { s::l }
 
 instruc:
-| e= expr POINTVIRGULE                                  { e }
+(*| e= expr POINTVIRGULE                                { e }*)
 | b= bloc                                               { Bloc(b) }
 | RETURN POINTVIRGULE                                   { Return }
-| IF e= expr THEN i1= instruc ELSE i2= instruc          { IfThenElse(e,i1,i2) }
+(*| IF e= expr THEN i1= instruc ELSE i2= instruc        { IfThenElse(e,i1,i2) }
 
 expr:
 | s= ID                     { Id(s) }
@@ -67,3 +66,4 @@ expr:
 | e1= expr DIV e2= expr     { Div(e1,e2) }
 | PLUS e= expr              { PlusU(e) }
 | MOINS e= expr             { MoinsU(e) }
+*)
