@@ -6,7 +6,7 @@ type opType =
     |EGAL
     |NEGAL
 
-(*
+
 type expType =
 	Id of string
 	|Cste of int
@@ -17,7 +17,7 @@ type expType =
 	|Div of (expType * expType)
 	|PlusU of expType
 	|MoinsU of expType
-*)
+
 type typeType = Type of string
 
 type declType = Decl of (string list * typeType)

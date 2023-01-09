@@ -12,6 +12,7 @@ open Ast
 %token AFFECT
 %token IF THEN ELSE
 %token IS VAR
+%token CLASS EXTENDS
 %token AUTO DEF NEW RETURN OBJECT
 %token EOF
 
@@ -26,7 +27,7 @@ lObjets:
 |                           { [] }
 
 deType:
-| DEUXPOINTS s= ID          { Id(s) }
+| DEUXPOINTS s= ID          { Type(s) }
 
 bloc:
 | ACCOLADE_G o= optLInstruc ACCOLADE_D                  { BlocLInst(o) }
@@ -34,7 +35,7 @@ bloc:
 
 optLInstruc:
 |                           { [] }
-| l=optLInstruc             { l }
+| l=lInstruc             { l }
 
 lInstruc:
 | i= instruc                { [i] }
