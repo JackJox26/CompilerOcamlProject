@@ -23,9 +23,9 @@ type typeType = Type of string
 type declType = Decl of (string list * typeType)
 
 type instructionType = 
-	(*Exp of expType
-	| *) Bloc of blocType 
-	(*| IfThenElse of (expType*instructionType*instructionType) *) 
+	Exp of expType
+	| Bloc of blocType 
+	| IfThenElse of (expType*instructionType*instructionType)
 	| Return
 
 and
