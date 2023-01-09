@@ -33,29 +33,54 @@ blocType =
 	BlocLInst of instructionType list 
 	| BlocDecl of (declType list * instructionType list) 
 
+
+
 (*
-type champsType = Champs of paramType
+type paramType = Param of (boolean * string * typeType)
+ *)
+
+ (*
+ type methodeCorps = Val of (typeType * expType) | ResultType of (typeType * blocType) | ResultSimple of blocType
+ *)
+
+  (*
+ type methodeType = {
+	nom : string;
+	listParam : paramType list;
+	typeRetour : typeType option;
+	isOverride : boolean;
+	corps : blocType;
+	methodeCorps : methodeCorps;
+ }
+ *)
+
+(*
+type corpsType = Corps of (	paramType list * methodeType list)
 *)
 
 (*
-type corpsType = Corps of (	champsType list * methodeType list)
+type heritageType = 
+{
+	nom : string;
+	listArgs : string list;
+}
 *)
 
 (*
 type classeType = 
 {	nom : string;
-	listParam : (string*string) list
-	OHeritage : heritageType option
-	OConstruct : blocType option
-	corps : corpsType
+	listParam : paramType list;
+	OHeritage : heritageType option;
+	OConstruct : blocType option;
+	corps : corpsType;
 }
 *)
 
 (*
 type objetIsoleType = 
-{	nom : string
-	OConstruct : blocType option
-	corps : corpsType
+{	nom : string;
+	OConstruct : blocType option;
+	corps : corpsType;
 }
 *)
 
@@ -64,24 +89,4 @@ type objetType (*=
 	| ObjetIsole of objetIsoleType
 *)
 	
-
-
-(*
-type paramType = Param of (string * string)
- *)
-
 type progType = Prog of (objetType list * blocType)
-	
-(* 
-type membreType = Attrib of (expType*string)
-
-type cibleType = 
-	|Result
-	|Var of string
-	|Membre of membreType
-
-type objetIsole = 
-
-type objetType = classe | objetIsole 
-
-*)
