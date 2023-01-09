@@ -1,25 +1,65 @@
-type opComp =
-  Eq | Neq | Lt | Le | Gt | Ge
+type opType = 
+    PGE
+    |PG
+    |PPE
+    |PP
+    |EGAL
+    |NEGAL
 
+(*
 type expType =
-  Id of string
-| Cste of int
-| Plus of expType*expType
-| Minus of expType*expType
-| Times of expType*expType
-| Div of expType*expType
-| Uminus of expType
-| Ifel of compType*expType*expType
+	Id of string
+	|Cste of int
+	|Parent of expType
+	|Plus of (expType * expType)
+	|Moins of (expType * expType)
+	|Mult of (expType * expType)
+	|Div of (expType * expType)
+	|PlusU of expType
+	|MoinsU of expType
+*)
+type typeType = Type of string
 
-and compType =
-  Comp of expType*opComp*expType
+type declType = Decl of (string list * typeType)
 
-type declarationType = string*expType
+type instructionType = 
+	(*Exp of expType
+	| *) Bloc of blocType 
+	(*| IfThenElse of (expType*instructionType*instructionType) *) 
+	| Return
 
-type declarationsType = declarationType list
+and
+blocType = 
+	BlocLInst of instructionType list 
+	| BlocDecl of (declType list * instructionType list) 
 
-type progType = declarationsType*expType
+type objetType (*= 
+	Classe of (string*paramType list*
+	ObjetIsole of
+	
+type classeType = 
+{	nom : string;
+	listParam : (string*string) list
+	OHeritage :
+	OConstruct :
+	corp : 
+}
 
-exception VC_Error of string
-exception RUN_Error of string
-exception MISC_Error of string
+type paramType = Param of (string * string)
+ *)
+
+type progType = Prog of (objetType list * blocType)
+	
+(* 
+type membreType = Attribut of (expType*string)
+
+type cibleType = 
+	|Result
+	|Var of string
+	|Membre of membreType
+
+type objetIsole = 
+
+type objetType = classe | objetIsole 
+
+*)
