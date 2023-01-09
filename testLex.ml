@@ -6,20 +6,21 @@ let output token =
     match token with
       CSTE v    -> "Constante entiere: " ^ (string_of_int v)
     | ID id     -> "Ident: " ^ id
-    | PPE       -> "operateur <="
-    | PP        -> "operateur <"
-    | PGE       -> "operateur >="
-    | PG        -> "operateur >"
-    | EGAL      -> "operateur ="
-    | NEGAL     -> "operateur <>"
+    | OPERATEUR(Ast.PG)   -> "operateur <="
+    | OPERATEUR(Ast.PP)        -> "operateur <"
+    | OPERATEUR(Ast.PGE)       -> "operateur >="
+    | OPERATEUR(Ast.PG)        -> "operateur >"
+    | OPERATEUR(Ast.EGAL)      -> "operateur ="
+    | OPERATEUR(Ast.NEGAL)     -> "operateur <>"
     | PLUS      -> "operateur +"
     | MOINS     -> "operateur -"
-    | TIMES     -> "operateur *"
+    | MUL     -> "operateur *"
     | DIV       -> "operateur /"
     | CONCAT    -> "operateur &"
     | POINTVIRGULE -> "symbole ;"
     | DEUXPOINTS-> "symbole :"
     | POINT     -> "symbole ."
+    | VIRGULE   -> "symbole ,"
     | PARENT_G  -> "symbole ("
     | PARENT_D  -> "symbole )"
     | ACCOLADE_G-> "symbole {"
@@ -54,7 +55,7 @@ let () =
       let lexbuf = Lexing.from_channel file
       in
       let rec process () =
-        match TpLex.token lexbuf with
+        match Lex.token lexbuf with
           EOF -> close_in file
         | tok -> print_endline (output tok); process ()
       in process ();
