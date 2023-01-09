@@ -1,10 +1,10 @@
-type opType =
-	PGE
-	|PG
-	|PPE
-	|PP
-	|EGAL
-	|NEGAL
+type opType = 
+    PGE
+    |PG
+    |PPE
+    |PP
+    |EGAL
+    |NEGAL
 
 (*
 type expType =
