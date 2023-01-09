@@ -17,6 +17,9 @@ open Ast
 %token AUTO DEF NEW RETURN OBJECT
 %token EOF
 
+%left PLUS MOINS
+%left MUL DIV
+%left UPLUS UMOINS
 
 
 (* l'axiome est aussi le nom de la fonction a appeler pour faire l'analyse syntaxique *)
@@ -69,5 +72,5 @@ expr:
 | e1= expr MUL e2= expr     { Mult(e1,e2) }
 | e1= expr DIV e2= expr     { Div(e1,e2) }
 | e1= expr CONCAT e2= expr  { Concat(e1,e2) }
-| PLUS e= expr              { PlusU(e) }
-| MOINS e= expr             { MoinsU(e) }
+| PLUS e= expr %prec UPLUS  { e }
+| MOINS e= expr %prec UMOINS{ MoinsU(e) }
