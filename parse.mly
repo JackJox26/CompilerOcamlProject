@@ -36,7 +36,7 @@ bloc:
 
 optLInstruc:
 |                           { [] }
-| l=lInstruc             { l }
+| l=lInstruc                { l }
 
 lInstruc:
 | i= instruc                { [i] }
@@ -54,10 +54,10 @@ lIdent:
 | s= ID VIRGULE l= lIdent   { s::l }
 
 instruc:
-(*| e= expr POINTVIRGULE                                { e }*)
+| e= expr POINTVIRGULE                                  { Exp(e) }
 | b= bloc                                               { Bloc(b) }
 | RETURN POINTVIRGULE                                   { Return }
-(*| IF e= expr THEN i1= instruc ELSE i2= instruc        { IfThenElse(e,i1,i2) }
+| IF e= expr THEN i1= instruc ELSE i2= instruc          { IfThenElse(e,i1,i2) }
 
 expr:
 | s= ID                     { Id(s) }
@@ -70,4 +70,3 @@ expr:
 | e1= expr CONCAT e2= expr  { Concat(e1,e2) }
 | PLUS e= expr              { PlusU(e) }
 | MOINS e= expr             { MoinsU(e) }
-*)

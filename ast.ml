@@ -9,16 +9,16 @@ type opType =
 
 type expType =
 	Id of string
-	|Cste of int
-	|Str of string
-	|Parent of expType
-	|Plus of (expType * expType)
-	|Moins of (expType * expType)
-	|Mult of (expType * expType)
-	|Div of (expType * expType)
-	|Concat of (expType * expType)
-	|PlusU of expType
-	|MoinsU of expType
+	| Cste of int
+	| Str of string
+	| Parent of expType
+	| Plus of (expType * expType)
+	| Moins of (expType * expType)
+	| Mult of (expType * expType)
+	| Div of (expType * expType)
+	| Concat of (expType * expType)
+	| PlusU of expType
+	| MoinsU of expType
 
 type typeType = Type of string
 
