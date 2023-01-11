@@ -20,7 +20,6 @@ open Ast
 
 (* l'axiome est aussi le nom de la fonction a appeler pour faire l'analyse syntaxique *)
 %start<Ast.progType> prog
-%type <heritageType option> heritage
 %%
 
 
@@ -35,26 +34,34 @@ objet:
 | c=classe                  { Classe(c) }
 | o=objetIsole              { ObjetIsole(o) }
 
-classe:
-| CLASS s=nomClasse PARENT_G l=optLParam PARENT_D (* h=option(heritage) b=optBloc c=corpsObjet *)        { { nomClasse=s ; listParam=l (* ; oHeritage=h ; oConstruct=option(b) ; corps=c *) } }
+(*classe:
+| CLASS s=nomClasse PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomClasse=s ; listParam=l (* ; oHeritage=h ; oConstruct=b ; corps=c  } }
 
 nomClasse:
 | s=ID                      { (*TODO*) }
-
+*)
 corpsObjet:
-| IS ACCOLADE_G lc=lChamp lm=lMethode ACCOLADE_D        { Corps(lc,lm) }
+| IS ACCOLADE_G lc=lChamp (*lm=lMethode*) ACCOLADE_D        { Corps(lc(*,lm*)) }
 
-lChamp:
-| {}
 
-lMethode:
-| {}
-
+(*
 heritage:
 | EXTENDS s=ID PARENT_G l=optLParam PARENT_D            { Heritage() }
+*)
+
+objetIsole:
+| OBJECT s=ID b=optBloc c=corpsObjet
+
 
 deType:
 | DEUXPOINTS s=ID           { Type(s) }
+
+lChamp:
+|                           { [] }
+| c=champ l=lChamp          { c::l }
+
+champ:
+| VAR a=boption(AUTO) p=param  { Champs(a,p) }
 
 bloc:
 | ACCOLADE_G o= optLInstruc ACCOLADE_D                  { BlocLInst(o) }

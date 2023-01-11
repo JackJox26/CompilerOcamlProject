@@ -6,7 +6,6 @@ type opType =
     |EGAL
     |NEGAL
 
-(*
 type expType =
 	Id of string
 	|Cste of int
@@ -17,7 +16,7 @@ type expType =
 	|Div of (expType * expType)
 	|PlusU of expType
 	|MoinsU of expType
-*)
+
 type typeType = Type of string
 
 type declType = Decl of (string list * typeType)
@@ -25,11 +24,11 @@ type declType = Decl of (string list * typeType)
 (* type cibleType = Result | *) 
 
 type instructionType = 
-	(*Exp of expType
-	| *) Bloc of blocType 
+	Exp of expType
+	|  Bloc of blocType 
 	(*| IfThenElse of (expType*instructionType*instructionType) *) 
 	| Return
-	(*| Affectation of (cibleType * expType)*) 
+	| Affectation of (cibleType * expType)
 
 and
 blocType = 
@@ -39,13 +38,11 @@ blocType =
 
 
 
-(*
-type paramType = Param of (string * typeType)
- *)
 
- (*
- type champsType = Champs of (boolean * paramType)
- *)
+type paramType = Param of (string * typeType)
+
+type champsType = Champs of (boolean * paramType)
+
 
  (*
  type methodeCorps = Val of (typeType * expType) 
@@ -82,17 +79,17 @@ type classeType =
 }
 *)
 
-(*
+
 type objetIsoleType = 
 {	nom : string;
 	oConstruct : blocType;
 	corps : corpsType
 }
-*)
 
-type objetType (*= 
-	Classe of classeType
+
+type objetType = 
+	(*Classe of classeType*)
 	| ObjetIsole of objetIsoleType
-*)
+
 	
 type progType = Prog of (objetType list * blocType)
