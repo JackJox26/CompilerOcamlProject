@@ -106,13 +106,3 @@ expr:
 | e1= expr CONCAT e2= expr  { Concat(e1,e2) }
 | PLUS e= expr %prec UPLUS  { e }
 | MOINS e= expr %prec UMOINS{ MoinsU(e) }
-| s=ID                      { Id(s) }
-| v=CSTE                    { Cste(v) }
-| s=STR                     { Str(s) }
-| e1=expr PLUS e2=expr      { Plus(e1,e2) }
-| e1=expr MOINS e2=expr     { Moins(e1,e2) }
-| e1=expr MUL e2=expr       { Mult(e1,e2) }
-| e1=expr DIV e2=expr       { Div(e1,e2) }
-| e1=expr CONCAT e2=expr    { Concat(e1,e2) }
-| PLUS e=expr %prec UPLUS   { e }
-| MOINS e=expr %prec UMOINS { MoinsU(e) }
