@@ -14,7 +14,7 @@ open Ast
 %token IF THEN ELSE
 %token IS VAR
 %token CLASS EXTENDS
-%token AUTO DEF NEW RETURN OBJECT
+%token OVERRIDE AUTO DEF NEW RETURN OBJECT
 %token EOF
 
 %left PLUS MOINS CONCAT
@@ -28,75 +28,94 @@ open Ast
 
 
 prog:
-| l=lObjets b=bloc EOF      { Prog(l,b) }
+  l=lObjets b=bloc EOF      { Prog(l,b) }
 
 lObjets:
-|                           { [] }
+                            { [] }
 | o=objet l=lObjets         { o::l }
 
 objet:
 (*| c=classe                  { Classe(c) }*)
-| o=objetIsole              { ObjetIsole(o) }
+  o=objetIsole              { ObjetIsole(o) }
 
 (*classe:
-| CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomClasse=n ; listParamClasse=l ; oHeritageClasse=h ; oConstructClasse=b ; corpsClasse=c  } }
+  CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomClasse=n ; listParamClasse=l ; oHeritageClasse=h ; oConstructClasse=b ; corpsClasse=c  } }
 *)
 corpsObjet:
-| IS ACCOLADE_G lc=lChamp (*lm=lMethode*) ACCOLADE_D    { Corps(lc(*,lm*)) }
+  IS ACCOLADE_G lc=lChamp lm=lMethode ACCOLADE_D    { Corps(lc,lm) }
 
 
 (*
 heritage:
-| EXTENDS s=ID PARENT_G l=optLParam PARENT_D            { Heritage() }
+  EXTENDS s=ID PARENT_G l=optLParam PARENT_D            { Heritage() }
 *)
 
 objetIsole:
-| OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet        { { nomObjetIsole=n ; oConstructObjetIsole=b ; corpsObjetIsole=c } }
+  OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet        { { nomObjetIsole=n ; oConstructObjetIsole=b ; corpsObjetIsole=c } }
 
 param:
-| s=ID t=deType             { Param(s,t) }
+  s=ID t=deType             { Param(s,t) }
 
 deType:
-| DEUXPOINTS s=NOMCLASSE    { Type(s) }
+  DEUXPOINTS s=NOMCLASSE    { Type(s) }
+
+optLParam:
+                            { [] }
+| l=lParam                  { l }
+
+lParam:
+  p=param                   { [p] }
+| p=param VIRGULE l=lParam  { p::l }
 
 lChamp:
-|                           { [] }
+                            { [] }
 | c=champ l=lChamp          { c::l }
 
 champ:
-| VAR a=boption(AUTO) p=param  { Champs(a,p) }
+  VAR a=boption(AUTO) p=param                           { Champs(a,p) }
+
+methode:
+  DEF o=boption(OVERRIDE) s=ID (lp=optLParam) c=methodeCorps                        { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; corpsMethode=c}
+
+methodeCorps:
+  t=deType AFFECT e=expr                                { ResultType(t,e) }
+| t=option(deType) IS b=bloc                            { Val(t,b) }
+
+lMethode:
+                            { [] }
+| m=methode l=lmethode      { m::l }
 
 bloc:
-| ACCOLADE_G o=optLInstruc ACCOLADE_D                                               { BlocLInst(o) }
+  ACCOLADE_G o=optLInstruc ACCOLADE_D                                               { BlocLInst(o) }
 | ACCOLADE_G ld=lDeclVar POINTVIRGULE IS li=lInstruc ACCOLADE_D                     { BlocDecl(ld,li) }
 
 optLInstruc:
-|                           { [] }
+                            { [] }
 | l=lInstruc                { l }
 
 lInstruc:
-| i=instruc                 { [i] }
+  i=instruc                 { [i] }
 | i=instruc l=lInstruc      { i::l }
 
 lDeclVar:
-| d= declVar                                            { [d] }
+  d= declVar                                            { [d] }
 | d= declVar POINTVIRGULE l= lDeclVar                   { d::l }
 
 declVar:
-| l=lIdent t=deType         { Decl(l,t) }
+  l=lIdent t=deType         { Decl(l,t) }
 
 lIdent:
-| s=ID                      { [s] }
+  s=ID                      { [s] }
 | s=ID VIRGULE l=lIdent     { s::l }
 
 instruc:
-| e=expr POINTVIRGULE                                   { Exp(e) }
+  e=expr POINTVIRGULE                                   { Exp(e) }
 | b=bloc                                                { Bloc(b) }
 | RETURN POINTVIRGULE                                   { Return }
 | IF e=expr THEN i1=instruc ELSE i2=instruc             { IfThenElse(e,i1,i2) }
 
 expr:
-| s= ID                     { Id(s) }
+  s= ID                     { Id(s) }
 | v= CSTE                   { Cste(v) }
 | s= STR                    { Str(s) }
 | e1= expr PLUS e2= expr    { Plus(e1,e2) }
