@@ -6,6 +6,7 @@ let output token =
     match token with
       CSTE v    -> "Constante entiere : " ^ (string_of_int v)
     | ID id     -> "Ident : " ^ id
+    | NOMCLASSE nomclasse -> "NomClasse : " ^ nomclasse
     | STR _str  -> "Str : " ^ _str
     | OPERATEUR(Ast.PPE)   -> "operateur <="
     | OPERATEUR(Ast.PP)        -> "operateur <"
