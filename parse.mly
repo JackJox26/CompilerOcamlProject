@@ -39,7 +39,7 @@ objet:
 | o=objetIsole              { ObjetIsole(o) }
 
 (*classe:
-| CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomClasse=n ; listParam=l ; oHeritage=h ; oConstruct=b ; corps=c  } }
+| CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomClasse=n ; listParamClasse=l ; oHeritageClasse=h ; oConstructClasse=b ; corpsClasse=c  } }
 *)
 corpsObjet:
 | IS ACCOLADE_G lc=lChamp (*lm=lMethode*) ACCOLADE_D    { Corps(lc(*,lm*)) }
@@ -51,7 +51,7 @@ heritage:
 *)
 
 objetIsole:
-| OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet        { { nomObjetIsole=n ; oConstruct=b ; corpsObjetIsole=c } }
+| OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet        { { nomObjetIsole=n ; oConstructObjetIsole=b ; corpsObjetIsole=c } }
 
 param:
 | s=ID t=deType             { Param(s,t) }
