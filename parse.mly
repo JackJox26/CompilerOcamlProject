@@ -1,7 +1,7 @@
 %{
 open Ast
 %}
-%token <string> ID
+%token <string> ID NOMCLASSE
 %token <int> CSTE
 %token <string> STR
 %token <Ast.opType> OPERATEUR
@@ -31,14 +31,11 @@ lObjets:
 | o=objet l=lObjets         { o::l }
 
 objet:
-| c=classe                  { Classe(c) }
+(*| c=classe                  { Classe(c) }*)
 | o=objetIsole              { ObjetIsole(o) }
 
 (*classe:
-| CLASS s=nomClasse PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomClasse=s ; listParam=l (* ; oHeritage=h ; oConstruct=b ; corps=c  } }
-
-nomClasse:
-| s=ID                      { (*TODO*) }
+| CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomClasse=n ; listParam=l ; oHeritage=h ; oConstruct=b ; corps=c  } }
 *)
 corpsObjet:
 | IS ACCOLADE_G lc=lChamp (*lm=lMethode*) ACCOLADE_D        { Corps(lc(*,lm*)) }
@@ -50,7 +47,7 @@ heritage:
 *)
 
 objetIsole:
-| OBJECT s=ID b=optBloc c=corpsObjet
+| OBJECT n=NOMCLASSE b=option(optBloc) c=corpsObjet
 
 
 deType:
