@@ -9,11 +9,13 @@ type opType =
 type expType =
 	Id of string
 	|Cste of int
+	|Str of string
 	|Parent of expType
 	|Plus of (expType * expType)
 	|Moins of (expType * expType)
 	|Mult of (expType * expType)
 	|Div of (expType * expType)
+	|Concat of (expType * expType)
 	|PlusU of expType
 	|MoinsU of expType
 
@@ -26,9 +28,9 @@ type declType = Decl of (string list * typeType)
 type instructionType = 
 	Exp of expType
 	|  Bloc of blocType 
-	(*| IfThenElse of (expType*instructionType*instructionType) *) 
+	| IfThenElse of (expType*instructionType*instructionType)
 	| Return
-	| Affectation of (cibleType * expType)
+	(*| Affectation of (cibleType * expType)*)
 
 and
 blocType = 
@@ -41,7 +43,7 @@ blocType =
 
 type paramType = Param of (string * typeType)
 
-type champsType = Champs of (boolean * paramType)
+type champsType = Champs of (bool * paramType)
 
 
  (*
@@ -55,35 +57,35 @@ type champsType = Champs of (boolean * paramType)
 	nom : string;
 	listParam : paramType list;
 	typeRetour : typeType option;
-	isOverride : boolean;
+	isOverride : bool;
 	corps : blocType;
 	methodeCorps : methodeCorps
  }
  *)
 
-(*
-type corpsType = Corps of (	champsType list * methodeType list)
-*)
+
+type corpsType = Corps of (	champsType list (* * methodeType list*))
+
 
 (*
-type heritageType = Heritage of { nom : string; listArgs : string list } | EmptyHeritage
+type heritageType = Heritage of { nomHeritage : string; listArgs : string list } | EmptyHeritage
 *)
 
 (*
 type classeType = 
-{	nom : string;
+{	nomClasse : string;
 	listParam : paramType list;
 	oHeritage : heritageType;
 	oConstruct : blocType;
-	corps : corpsType
+	corpsClasse : corpsType
 }
 *)
 
 
 type objetIsoleType = 
-{	nom : string;
-	oConstruct : blocType;
-	corps : corpsType
+{	nomObjetIsole : string;
+	oConstruct : blocType option;
+	corpsObjetIsole : corpsType
 }
 
 

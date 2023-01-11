@@ -38,7 +38,7 @@ objet:
 | CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomClasse=n ; listParam=l ; oHeritage=h ; oConstruct=b ; corps=c  } }
 *)
 corpsObjet:
-| IS ACCOLADE_G lc=lChamp (*lm=lMethode*) ACCOLADE_D        { Corps(lc(*,lm*)) }
+| IS ACCOLADE_G lc=lChamp (*lm=lMethode*) ACCOLADE_D    { Corps(lc(*,lm*)) }
 
 
 (*
@@ -47,11 +47,13 @@ heritage:
 *)
 
 objetIsole:
-| OBJECT n=NOMCLASSE b=option(optBloc) c=corpsObjet
+| OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet        { { nomObjetIsole=n ; oConstruct=b ; corpsObjetIsole=c } }
 
+param:
+| s=ID t=deType             { Param(s,t) }
 
 deType:
-| DEUXPOINTS s=ID           { Type(s) }
+| DEUXPOINTS s=NOMCLASSE    { Type(s) }
 
 lChamp:
 |                           { [] }
@@ -61,8 +63,8 @@ champ:
 | VAR a=boption(AUTO) p=param  { Champs(a,p) }
 
 bloc:
-| ACCOLADE_G o= optLInstruc ACCOLADE_D                  { BlocLInst(o) }
-| ACCOLADE_G ld= lDeclVar IS li= lInstruc ACCOLADE_D    { BlocDecl(ld,li) }
+| ACCOLADE_G o=optLInstruc ACCOLADE_D                   { BlocLInst(o) }
+| ACCOLADE_G ld=lDeclVar IS li=lInstruc ACCOLADE_D      { BlocDecl(ld,li) }
 
 optLInstruc:
 |                           { [] }
