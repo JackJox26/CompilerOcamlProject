@@ -26,7 +26,7 @@ type declType = Decl of (string list * typeType)
 
 type instructionType = 
 	Exp of expType
-	|  Bloc of blocType 
+	| Bloc of blocType 
 	| IfThenElse of (expType*instructionType*instructionType)
 	| Return
 	(*| Affectation of (cibleType * expType)*)
@@ -42,25 +42,23 @@ type paramType = Param of (string * typeType)
 type champsType = Champs of (bool * paramType)
 
 
- (*
- type methodeCorps = Val of (typeType * expType) 
- 	| ResultType of (typeType * blocType) 
-	| ResultSimple of blocType
- *)
+ 
+ type methodeCorps = 
+ 	Val of (typeType * expType) 
+ 	| ResultType of (typeType option * blocType)
+ 
 
-(*
+
  type methodeType = {
 	nomMethode : string;
 	listParamMethode : paramType list;
-	typeRetourMethode : typeType option;
 	isOverrideMethode : bool;
-	corpsMethode : blocType;
 	corpsMethode : methodeCorps
  }
- *)
 
 
-type corpsType = Corps of (*( *)	champsType list (** methodeType list)*)
+
+type corpsType = Corps of (champsType list * methodeType list)
 
 
 (*
@@ -87,8 +85,8 @@ type objetIsoleType =
 
 
 type objetType = 
-	(*Classe of classeType*)
-	| ObjetIsole of objetIsoleType
+	(*Classe of classeType
+	| *)ObjetIsole of objetIsoleType
 
 	
 type progType = Prog of (objetType list * blocType)
