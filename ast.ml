@@ -35,9 +35,6 @@ and
 blocType = 
 	BlocLInst of instructionType list 
 	| BlocDecl of (declType list * instructionType list)
-	| Empty
-
-
 
 
 type paramType = Param of (string * typeType)
@@ -53,37 +50,38 @@ type champsType = Champs of (bool * paramType)
 
 (*
  type methodeType = {
-	nom : string;
-	listParam : paramType list;
-	typeRetour : typeType option;
-	isOverride : bool;
-	corps : blocType;
-	methodeCorps : methodeCorps
+	nomMethode : string;
+	listParamMethode : paramType list;
+	typeRetourMethode : typeType option;
+	isOverrideMethode : bool;
+	corpsMethode : blocType;
+	corpsMethode : methodeCorps
  }
  *)
 
 
-type corpsType = Corps of (	champsType list (* * methodeType list*))
+type corpsType = Corps of (*( *)	champsType list (** methodeType list)*)
 
 
 (*
-type heritageType = Heritage of { nomHeritage : string; listArgs : string list } | EmptyHeritage
+type heritageType = Heritage of { nomHeritage : string; listArgsHeritage : string list } | EmptyHeritage
 *)
 
 (*
 type classeType = 
 {	nomClasse : string;
-	listParam : paramType list;
-	oHeritage : heritageType;
-	oConstruct : blocType;
+	listParamClasse : paramType list;
+	oHeritageClasse : heritageType option;
+	oConstructClasse : blocType option;
 	corpsClasse : corpsType
 }
 *)
 
 
 type objetIsoleType = 
-{	nomObjetIsole : string;
-	oConstruct : blocType option;
+{	
+	nomObjetIsole : string;
+	oConstructObjetIsole : blocType option;
 	corpsObjetIsole : corpsType
 }
 
