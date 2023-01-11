@@ -90,7 +90,7 @@ type objetIsoleType =
 
 type objetType = 
 	(*Classe of classeType*)
-	| ObjetIsole of objetIsoleType
+	 ObjetIsole of objetIsoleType
 
 	
 type progType = Prog of (objetType list * blocType)
