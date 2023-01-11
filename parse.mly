@@ -35,20 +35,17 @@ lObjets:
 | o=objet l=lObjets         { o::l }
 
 objet:
-(* c=classe                  { Classe(c) }
-|*) o=objetIsole              { ObjetIsole(o) }
+  c=classe                  { Classe(c) }
+| o=objetIsole              { ObjetIsole(o) }
 
-(*classe:
+classe:
   CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomClasse=n ; listParamClasse=l ; oHeritageClasse=h ; oConstructClasse=b ; corpsClasse=c  } }
-*)
+
 corpsObjet:
-  IS ACCOLADE_G lc=lChamp lm=lMethode ACCOLADE_D    { Corps(lc,lm) }
+  IS ACCOLADE_G lc=lChamp lm=lMethode ACCOLADE_D        { Corps(lc,lm) }
 
-
-(*
 heritage:
-  EXTENDS s=ID PARENT_G l=optLParam PARENT_D            { Heritage() }
-*)
+  EXTENDS n=NOMCLASSE PARENT_G l=optLExpr PARENT_D      { { nomHeritage=n ; listArgsHeritage=l } }
 
 objetIsole:
   OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet        { { nomObjetIsole=n ; oConstructObjetIsole=b ; corpsObjetIsole=c } }
@@ -125,3 +122,11 @@ expr:
 | e1= expr CONCAT e2= expr  { Concat(e1,e2) }
 | PLUS e= expr %prec UPLUS  { e }
 | MOINS e= expr %prec UMOINS{ MoinsU(e) }
+
+optLExpr:
+                            { [] }
+| l=lExpr                   { l }
+
+lExpr:
+  e=expr                    { [e] }
+| e=expr VIRGULE l=lExpr    { e::l }
