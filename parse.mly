@@ -67,8 +67,8 @@ champ:
 | VAR a=boption(AUTO) p=param  { Champs(a,p) }
 
 bloc:
-| ACCOLADE_G o=optLInstruc ACCOLADE_D                   { BlocLInst(o) }
-| ACCOLADE_G ld=lDeclVar IS li=lInstruc ACCOLADE_D      { BlocDecl(ld,li) }
+| ACCOLADE_G o=optLInstruc ACCOLADE_D                                               { BlocLInst(o) }
+| ACCOLADE_G ld=lDeclVar POINTVIRGULE IS li=lInstruc ACCOLADE_D                     { BlocDecl(ld,li) }
 
 optLInstruc:
 |                           { [] }
@@ -79,8 +79,8 @@ lInstruc:
 | i=instruc l=lInstruc      { i::l }
 
 lDeclVar:
-| d= declVar                { [d] }
-| d= declVar l= lDeclVar    { d::l }
+| d= declVar                                            { [d] }
+| d= declVar POINTVIRGULE l= lDeclVar                   { d::l }
 
 declVar:
 | l=lIdent t=deType         { Decl(l,t) }
