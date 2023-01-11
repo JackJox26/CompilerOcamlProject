@@ -35,8 +35,8 @@ lObjets:
 | o=objet l=lObjets         { o::l }
 
 objet:
-(*| c=classe                  { Classe(c) }*)
-  o=objetIsole              { ObjetIsole(o) }
+(* c=classe                  { Classe(c) }
+|*) o=objetIsole              { ObjetIsole(o) }
 
 (*classe:
   CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomClasse=n ; listParamClasse=l ; oHeritageClasse=h ; oConstructClasse=b ; corpsClasse=c  } }
@@ -75,15 +75,15 @@ champ:
   VAR a=boption(AUTO) p=param                           { Champs(a,p) }
 
 methode:
-  DEF o=boption(OVERRIDE) s=ID (lp=optLParam) c=methodeCorps                        { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; corpsMethode=c}
+  DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D c=methodeCorps        { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; corpsMethode=c} }
 
 methodeCorps:
-  t=deType AFFECT e=expr                                { ResultType(t,e) }
-| t=option(deType) IS b=bloc                            { Val(t,b) }
+  t=deType AFFECT e=expr                                { Val(t,e) }
+| t=option(deType) IS b=bloc                            { ResultType(t,b) }
 
 lMethode:
                             { [] }
-| m=methode l=lmethode      { m::l }
+| m=methode l=lMethode      { m::l }
 
 bloc:
   ACCOLADE_G o=optLInstruc ACCOLADE_D                                               { BlocLInst(o) }
