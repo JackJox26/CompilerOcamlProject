@@ -22,11 +22,17 @@ type typeType = Type of string
 
 type declType = Decl of (string list * typeType)
 
-(* type cibleType = Result | *) 
+(*type methodeMembre = *)
+
+(*type membreType = *)
+
+(* type cibleType = 
+	 Var of string 
+	 | CibleMembre of membreType *) 
 
 type instructionType = 
 	Exp of expType
-	|  Bloc of blocType 
+	| Bloc of blocType 
 	| IfThenElse of (expType*instructionType*instructionType)
 	| Return
 	(*| Affectation of (cibleType * expType)*)
@@ -35,9 +41,6 @@ and
 blocType = 
 	BlocLInst of instructionType list 
 	| BlocDecl of (declType list * instructionType list)
-	| Empty
-
-
 
 
 type paramType = Param of (string * typeType)
@@ -45,52 +48,55 @@ type paramType = Param of (string * typeType)
 type champsType = Champs of (bool * paramType)
 
 
- (*
- type methodeCorps = Val of (typeType * expType) 
- 	| ResultType of (typeType * blocType) 
-	| ResultSimple of blocType
- *)
+ 
+ type methodeCorps = 
+ 	Val of (typeType * expType) 
+ 	| ResultType of (typeType option * blocType)
+ 
 
-(*
+
  type methodeType = {
-	nom : string;
-	listParam : paramType list;
-	typeRetour : typeType option;
-	isOverride : bool;
-	corps : blocType;
-	methodeCorps : methodeCorps
+	nomMethode : string;
+	listParamMethode : paramType list;
+	isOverrideMethode : bool;
+	corpsMethode : methodeCorps
  }
- *)
 
 
-type corpsType = Corps of (	champsType list (* * methodeType list*))
+
+type corpsType = Corps of (champsType list * methodeType list)
 
 
-(*
-type heritageType = Heritage of { nomHeritage : string; listArgs : string list } | EmptyHeritage
-*)
 
-(*
+type heritageType = { nomHeritage : string; listArgsHeritage : expType list }
+
+
+
 type classeType = 
 {	nomClasse : string;
-	listParam : paramType list;
-	oHeritage : heritageType;
-	oConstruct : blocType;
+	listParamClasse : paramType list;
+	oHeritageClasse : heritageType option;
+	oConstructClasse : blocType option;
 	corpsClasse : corpsType
 }
-*)
 
 
 type objetIsoleType = 
-{	nomObjetIsole : string;
-	oConstruct : blocType option;
+{	
+	nomObjetIsole : string;
+	oConstructObjetIsole : blocType option;
 	corpsObjetIsole : corpsType
 }
 
 
 type objetType = 
+<<<<<<< HEAD
 	(*Classe of classeType*)
 	 ObjetIsole of objetIsoleType
+=======
+	Classe of classeType
+	| ObjetIsole of objetIsoleType
+>>>>>>> main
 
 	
 type progType = Prog of (objetType list * blocType)
