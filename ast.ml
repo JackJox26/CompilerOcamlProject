@@ -16,7 +16,6 @@ type expType =
 	|Mult of (expType * expType)
 	|Div of (expType * expType)
 	|Concat of (expType * expType)
-	|PlusU of expType
 	|MoinsU of expType
 
 type typeType = Type of string
