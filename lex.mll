@@ -1,8 +1,12 @@
+(*Faire gestion des string : ""*)
+
 {
 open Ast
 open Parse
 open Lexing
 exception Eof
+exception Eof_dans_Str
+exception Eof_dans_commentaire
 
 (* gere les positions numero de ligne + decalage dans la ligne *)
 let next_line lexbuf = Lexing.new_line lexbuf
@@ -28,6 +32,8 @@ let _ =
 }
 
 (* abréviation utiles pour les expressions rationnelles *)
+let minuscule = ['a'-'z']
+let majuscule = ['A'-'Z']
 let lettre = ['A'-'Z' 'a'-'z']
 let chiffre = ['0'-'9']
 let LC = ( chiffre | lettre )
@@ -40,16 +46,21 @@ let LC = ( chiffre | lettre )
  *)
 rule
   token = parse (* a completer *)
-   lettre LC * as id  { 
+   minuscule LC * as id  { 
                         try 
                             Hashtbl.find keyword_table id
                         with
                             Not_found ->                        
                                 ID id 
                         }
+
+
+  |  majuscule LC * as nomclasse    {
+                                        NOMCLASSE nomclasse
+                                    }
   | [' ''\t''\r']        { token lexbuf }     (* skip blanks *)
   | '\n'                 { next_line lexbuf; token lexbuf}
-  | "/*"		 { 
+  | "/*"		 {
                             (* lance la fonction specialisée dans la
                              * reconnaissance des commentaires
                              *)
@@ -59,6 +70,11 @@ rule
  * significatif
  *)
   | chiffre * as i { CSTE (int_of_string i) }
+
+(*Detecteur de string*)
+  | '"' {
+            string_parse (Buffer.create 17) lexbuf
+         }
 
   | ":=" { AFFECT }
 
@@ -109,6 +125,62 @@ and
                      *)
                      token lexbuf
                   }
+  | eof           {
+                       raise (Eof_dans_commentaire) 
+                  }
   | _             { comment lexbuf }
 
+and
+    string_parse buf = parse
+    '"'           {
+                        STR (Buffer.contents buf)
+                  }
+  | '\\'          {
+                        eat_next buf lexbuf
+                  }
+  | eof           {
+                       raise (Eof_dans_Str) 
+                  }
+  | _ as c        {
+                        Buffer.add_char buf c;
+                        string_parse buf lexbuf
+                  }
+
+and
+    eat_next buf = parse
+    '/'           {
+                        Buffer.add_char buf '/';
+                        string_parse buf lexbuf
+                  }
+  | '\\'           {
+                        Buffer.add_char buf '\\';
+                        string_parse buf lexbuf
+                  }
+  | 'b'           {
+                        Buffer.add_char buf '\b';
+                        string_parse buf lexbuf
+                  }
+  | 'f'           {
+                        Buffer.add_char buf '\012';
+                        string_parse buf lexbuf
+                  }
+  | 'n'           {
+                        Buffer.add_char buf '\n';
+                        string_parse buf lexbuf
+                  }
+  | 'r'           {
+                        Buffer.add_char buf '\r';
+                        string_parse buf lexbuf
+                  }
+  | 't'           {
+                        Buffer.add_char buf '\t';
+                        string_parse buf lexbuf
+                  }
+  | eof           {
+                       raise (Eof_dans_Str) 
+                  }
+  | _ as c        {
+                        Buffer.add_char buf c;
+                        string_parse buf lexbuf
+                  }
 

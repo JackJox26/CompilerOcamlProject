@@ -4,9 +4,11 @@ open Parse
 
 let output token =
     match token with
-      CSTE v    -> "Constante entiere: " ^ (string_of_int v)
-    | ID id     -> "Ident: " ^ id
-    | OPERATEUR(Ast.PG)   -> "operateur <="
+      CSTE v    -> "Constante entiere : " ^ (string_of_int v)
+    | ID id     -> "Ident : " ^ id
+    | NOMCLASSE nomclasse -> "NomClasse : " ^ nomclasse
+    | STR _str  -> "Str : " ^ _str
+    | OPERATEUR(Ast.PPE)   -> "operateur <="
     | OPERATEUR(Ast.PP)        -> "operateur <"
     | OPERATEUR(Ast.PGE)       -> "operateur >="
     | OPERATEUR(Ast.PG)        -> "operateur >"
@@ -26,18 +28,20 @@ let output token =
     | ACCOLADE_G-> "symbole {"
     | ACCOLADE_D-> "symbole }"
     | AFFECT    -> "symbole :="
-    | IF        -> "mot-clef: IF"
-    | THEN      -> "mot-clef: THEN"
-    | ELSE      -> "mot-clef: ELSE"
-    | IS        -> "mot-clef: IS"
-    | VAR       -> "mot-clef: VAR"
-    | AUTO      -> "mot-clef: AUTO"
-    | DEF       -> "mot-clef: DEF"
-    | NEW       -> "mot-clef: NEW"
-    | OBJECT    -> "mot-clef: OBJECT"
-    | RETURN    -> "mot-clef: RETURN"
+    | IF        -> "mot-clef : IF"
+    | THEN      -> "mot-clef : THEN"
+    | ELSE      -> "mot-clef : ELSE"
+    | IS        -> "mot-clef : IS"
+    | VAR       -> "mot-clef : VAR"
+    | CLASS     -> "mot-clef : CLASS"
+    | EXTENDS   -> "mot-clef : EXTENDS"
+    | AUTO      -> "mot-clef : AUTO"
+    | DEF       -> "mot-clef : DEF"
+    | NEW       -> "mot-clef : NEW"
+    | OBJECT    -> "mot-clef : OBJECT"
+    | RETURN    -> "mot-clef : RETURN"
     | UMOINS ->
-       failwith "UMOINS seen in testLex"
+       failwith "UMOINS seen in testLex" (*N est jamais genere par l analyse lexicale*)
     | EOF      -> (* gere avant l'appel a cette fonction, donc impossible *)
        failwith "Should not happen in testLex"
     | _ -> "Unexpected token in testLex"

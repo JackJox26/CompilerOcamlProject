@@ -1,0 +1,217 @@
+
+** Conflict (shift/reduce) in state 22.
+** Tokens involved: PLUS MUL MOINS DIV CONCAT
+** The following explanations concentrate on token PLUS.
+** This state is reached from prog after reading:
+
+lObjets ACCOLADE_G PLUS expr
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+prog 
+lObjets bloc EOF 
+        ACCOLADE_G optLInstruc ACCOLADE_D 
+                   lInstruc 
+                   instruc 
+                   expr POINTVIRGULE 
+                   (?)
+
+** In state 22, looking ahead at PLUS, shifting is permitted
+** because of the following sub-derivation:
+
+PLUS expr 
+     expr . PLUS expr 
+
+** In state 22, looking ahead at PLUS, reducing production
+** expr -> PLUS expr
+** is permitted because of the following sub-derivation:
+
+expr PLUS expr // lookahead token appears
+PLUS expr . 
+
+** Conflict (shift/reduce) in state 21.
+** Tokens involved: PLUS MUL MOINS DIV CONCAT
+** The following explanations concentrate on token PLUS.
+** This state is reached from prog after reading:
+
+lObjets ACCOLADE_G expr CONCAT expr
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+prog 
+lObjets bloc EOF 
+        ACCOLADE_G optLInstruc ACCOLADE_D 
+                   lInstruc 
+                   instruc 
+                   expr POINTVIRGULE 
+                   (?)
+
+** In state 21, looking ahead at PLUS, shifting is permitted
+** because of the following sub-derivation:
+
+expr CONCAT expr 
+            expr . PLUS expr 
+
+** In state 21, looking ahead at PLUS, reducing production
+** expr -> expr CONCAT expr
+** is permitted because of the following sub-derivation:
+
+expr PLUS expr // lookahead token appears
+expr CONCAT expr . 
+
+** Conflict (shift/reduce) in state 19.
+** Tokens involved: PLUS MUL MOINS DIV CONCAT
+** The following explanations concentrate on token PLUS.
+** This state is reached from prog after reading:
+
+lObjets ACCOLADE_G expr DIV expr
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+prog 
+lObjets bloc EOF 
+        ACCOLADE_G optLInstruc ACCOLADE_D 
+                   lInstruc 
+                   instruc 
+                   expr POINTVIRGULE 
+                   (?)
+
+** In state 19, looking ahead at PLUS, shifting is permitted
+** because of the following sub-derivation:
+
+expr DIV expr 
+         expr . PLUS expr 
+
+** In state 19, looking ahead at PLUS, reducing production
+** expr -> expr DIV expr
+** is permitted because of the following sub-derivation:
+
+expr PLUS expr // lookahead token appears
+expr DIV expr . 
+
+** Conflict (shift/reduce) in state 17.
+** Tokens involved: PLUS MUL MOINS DIV CONCAT
+** The following explanations concentrate on token PLUS.
+** This state is reached from prog after reading:
+
+lObjets ACCOLADE_G expr MOINS expr
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+prog 
+lObjets bloc EOF 
+        ACCOLADE_G optLInstruc ACCOLADE_D 
+                   lInstruc 
+                   instruc 
+                   expr POINTVIRGULE 
+                   (?)
+
+** In state 17, looking ahead at PLUS, shifting is permitted
+** because of the following sub-derivation:
+
+expr MOINS expr 
+           expr . PLUS expr 
+
+** In state 17, looking ahead at PLUS, reducing production
+** expr -> expr MOINS expr
+** is permitted because of the following sub-derivation:
+
+expr PLUS expr // lookahead token appears
+expr MOINS expr . 
+
+** Conflict (shift/reduce) in state 15.
+** Tokens involved: PLUS MUL MOINS DIV CONCAT
+** The following explanations concentrate on token PLUS.
+** This state is reached from prog after reading:
+
+lObjets ACCOLADE_G expr MUL expr
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+prog 
+lObjets bloc EOF 
+        ACCOLADE_G optLInstruc ACCOLADE_D 
+                   lInstruc 
+                   instruc 
+                   expr POINTVIRGULE 
+                   (?)
+
+** In state 15, looking ahead at PLUS, shifting is permitted
+** because of the following sub-derivation:
+
+expr MUL expr 
+         expr . PLUS expr 
+
+** In state 15, looking ahead at PLUS, reducing production
+** expr -> expr MUL expr
+** is permitted because of the following sub-derivation:
+
+expr PLUS expr // lookahead token appears
+expr MUL expr . 
+
+** Conflict (shift/reduce) in state 13.
+** Tokens involved: PLUS MUL MOINS DIV CONCAT
+** The following explanations concentrate on token PLUS.
+** This state is reached from prog after reading:
+
+lObjets ACCOLADE_G expr PLUS expr
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+prog 
+lObjets bloc EOF 
+        ACCOLADE_G optLInstruc ACCOLADE_D 
+                   lInstruc 
+                   instruc 
+                   expr POINTVIRGULE 
+                   (?)
+
+** In state 13, looking ahead at PLUS, shifting is permitted
+** because of the following sub-derivation:
+
+expr PLUS expr 
+          expr . PLUS expr 
+
+** In state 13, looking ahead at PLUS, reducing production
+** expr -> expr PLUS expr
+** is permitted because of the following sub-derivation:
+
+expr PLUS expr // lookahead token appears
+expr PLUS expr . 
+
+** Conflict (shift/reduce) in state 11.
+** Tokens involved: PLUS MUL MOINS DIV CONCAT
+** The following explanations concentrate on token PLUS.
+** This state is reached from prog after reading:
+
+lObjets ACCOLADE_G MOINS expr
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+prog 
+lObjets bloc EOF 
+        ACCOLADE_G optLInstruc ACCOLADE_D 
+                   lInstruc 
+                   instruc 
+                   expr POINTVIRGULE 
+                   (?)
+
+** In state 11, looking ahead at PLUS, shifting is permitted
+** because of the following sub-derivation:
+
+MOINS expr 
+      expr . PLUS expr 
+
+** In state 11, looking ahead at PLUS, reducing production
+** expr -> MOINS expr
+** is permitted because of the following sub-derivation:
+
+expr PLUS expr // lookahead token appears
+MOINS expr . 
