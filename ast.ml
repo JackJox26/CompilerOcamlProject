@@ -69,7 +69,7 @@ type corpsType = Corps of (champsType list * methodeType list)
 
 
 
-type heritageType = Heritage of { nomHeritage : string; listArgsHeritage : expType list }
+type heritageType = { nomHeritage : string; listArgsHeritage : expType list }
 
 
 
