@@ -10,10 +10,6 @@ type typeType = Type of string
 
 type paramType = Param of (string * typeType)
 
-type methodeMembreType = 
-	 MethodeExpr of (expType * string * paramType list)
-	 |MethodeObjetIsole of (string * string * paramType list)
-
 type membreType = 
 	AutoRef of (string*string)
 	|MembreMasque of (string*string*string) 
@@ -22,7 +18,6 @@ type expType =
 	Id of string
 	|Cste of int
 	|Str of string
-	|Parent of expType
 	|Cast of (string * expType)
 	|Membre of membreType
 	|Instance of (string * paramType list)
@@ -34,6 +29,10 @@ type expType =
 	|Concat of (expType * expType)
 	|MoinsU of expType
 	|Comp of (expType * opType * expType)
+
+and methodeMembreType = 
+	MethodeExpr of (expType * string * paramType list)
+	|MethodeObjetIsole of (string * string * paramType list)
 
 
 type declType = Decl of (string list * typeType)

@@ -110,21 +110,21 @@ instruc:
 | b=bloc                                                { Bloc(b) }
 | RETURN POINTVIRGULE                                   { Return }
 | IF e=expr THEN i1=instruc ELSE i2=instruc             { IfThenElse(e,i1,i2) }
-| c=cible AFFECT e= expr                                { }
+| c=cible AFFECT e= expr                                { Affectation(c,e) }
 
 cible:
-  s=ID                                                  { }
-| m=membre                                              { }
+  s=ID                                                  { Var(s) }
+| m=membre                                              { CibleMembre(m) }
 
 expr:
   s= ID                                                 { Id(s) }
 | v= CSTE                                               { Cste(v) }
 | s= STR                                                { Str(s) }
 | PARENT_G e=expr PARENT_D                              { e }
-| PARENT_G n=NOMCLASSE PARENT_D                         { }
-| m=membre                                              { }
-| NEW n=NOMCLASSE PARENT_G l=optLParam PARENT_D         { }
-| m=methodeDeMembre                                     { }
+| PARENT_G n=NOMCLASSE e=expr PARENT_D                  { Cast(n,e) }
+| m=membre                                              { Membre(m) }
+| NEW n=NOMCLASSE PARENT_G l=optLParam PARENT_D         { Instance(n,l) }
+| m=methodeDeMembre                                     { Methode(m) }
 | e1= expr PLUS e2= expr                                { Plus(e1,e2) }
 | e1= expr MOINS e2= expr                               { Moins(e1,e2) }
 | e1= expr MUL e2= expr                                 { Mult(e1,e2) }
@@ -132,6 +132,7 @@ expr:
 | e1= expr CONCAT e2= expr                              { Concat(e1,e2) }
 | PLUS e= expr %prec UPLUS                              { e }
 | MOINS e= expr %prec UMOINS                            { MoinsU(e) }
+| e1=expr o=OPERATEUR e2=expr                           { Comp(e1,o,e2) }
 
 optLExpr:
                             { [] }
@@ -142,10 +143,10 @@ lExpr:
 | e=expr VIRGULE l=lExpr    { e::l }
 
 membre:
-  s1=ID POINT s2=ID                                     { }
-| PARENT_G s1=ID PARENT_D POINT s2=ID                   { }
-| PARENT_G n=NOMCLASSE s1=ID PARENT_D POINT s2=ID       { }
+  s1=ID POINT s2=ID                                     { AutoRef(s1,s2) }
+| PARENT_G s1=ID PARENT_D POINT s2=ID                   { AutoRef(s1,s2) }
+| PARENT_G n=NOMCLASSE s1=ID PARENT_D POINT s2=ID       { MembreMasque(n,s1,s2) }
 
-methodeDeMembre
-  e=expr POINT s=ID PARENT_G l=optLParam PARENT_D       { }
-| n=NOMCLASSE POINT s=ID PARENT_G l=optLParam PARENT_D  { }
+methodeDeMembre:
+  e=expr POINT s=ID PARENT_G l=optLParam PARENT_D       { MethodeExpr(e,s,l) }
+| n=NOMCLASSE POINT s=ID PARENT_G l=optLParam PARENT_D  { MethodeObjetIsole(n,s,l) }
