@@ -99,10 +99,10 @@ lInstruc:
 
 lDeclVar:
   d= declVar                                            { [d] }
-| d= declVar POINTVIRGULE l= lDeclVar                   { d::l }
+| d= declVar l= lDeclVar                                { d::l }
 
 declVar:
-  l=lIdent t=deType         { Decl(l,t) }
+  l=lIdent t=deType POINTVIRGULE                        { Decl(l,t) }
 
 lIdent:
   s=ID                      { [s] }
