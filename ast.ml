@@ -17,6 +17,7 @@ type expType =
 	|Div of (expType * expType)
 	|Concat of (expType * expType)
 	|MoinsU of expType
+	|Comp of (expType * opType * expType)
 
 type typeType = Type of string
 
