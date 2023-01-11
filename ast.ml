@@ -15,9 +15,9 @@ type expType =
 	|Moins of (expType * expType)
 	|Mult of (expType * expType)
 	|Div of (expType * expType)
-	|PlusU of expType
 	|MoinsU of expType
 *)
+
 type typeType = Type of string
 
 type declType = Decl of (string list * typeType)
@@ -35,7 +35,6 @@ and
 blocType = 
 	BlocLInst of instructionType list 
 	| BlocDecl of (declType list * instructionType list)
-	| Empty
 
 
 
@@ -43,9 +42,9 @@ blocType =
 type paramType = Param of (string * typeType)
  *)
 
- (*
- type champsType = Champs of (boolean * paramType)
- *)
+ 
+ type champsType = Champs of (bool * paramType)
+
 
  (*
  type methodeCorps = Val of (typeType * expType) 
@@ -55,44 +54,45 @@ type paramType = Param of (string * typeType)
 
 (*
  type methodeType = {
-	nom : string;
-	listParam : paramType list;
-	typeRetour : typeType option;
-	isOverride : boolean;
-	corps : blocType;
-	methodeCorps : methodeCorps
+	nomMethode : string;
+	listParamMethode : paramType list;
+	typeRetourMethode : typeType option;
+	isOverrideMethode : bool;
+	corpsMethode : blocType;
+	corpsMethode : methodeCorps
  }
  *)
 
-(*
-type corpsType = Corps of (	champsType list * methodeType list)
-*)
+
+type corpsType = Corps of (*( *)	champsType list (** methodeType list)*)
+
 
 (*
-type heritageType = Heritage of { nom : string; listArgs : string list } | EmptyHeritage
+type heritageType = Heritage of { nomHeritage : string; listArgsHeritage : string list } | EmptyHeritage
 *)
 
 (*
 type classeType = 
-{	nom : string;
-	listParam : paramType list;
-	oHeritage : heritageType option;
-	oConstruct : blocType option;
-	corps : corpsType
+{	nomClasse : string;
+	listParamClasse : paramType list;
+	oHeritageClasse : heritageType option;
+	oConstructClasse : blocType option;
+	corpsClasse : corpsType
 }
 *)
 
-(*
+
 type objetIsoleType = 
-{	nom : string;
-	oConstruct : blocType;
-	corps : corpsType
+{	
+	nomObjetIsole : string;
+	oConstructObjetIsole : blocType option;
+	corpsObjetIsole : corpsType
 }
-*)
+
 
 type objetType (*= 
 	Classe of classeType
-	| ObjetIsole of objetIsoleType
-*)
+	| *)ObjetIsole of objetIsoleType
+
 	
 type progType = Prog of (objetType list * blocType)
