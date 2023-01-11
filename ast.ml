@@ -76,8 +76,8 @@ type heritageType = Heritage of { nom : string; listArgs : string list } | Empty
 type classeType = 
 {	nom : string;
 	listParam : paramType list;
-	oHeritage : heritageType;
-	oConstruct : blocType;
+	oHeritage : heritageType option;
+	oConstruct : blocType option;
 	corps : corpsType
 }
 *)
