@@ -36,41 +36,29 @@ lObjets:
 | o=objet l=lObjets         { o::l }
 
 objet:
-<<<<<<< HEAD
-(*| c=classe                  { Classe(c) }*)
-  o=objetIsole              { ObjetIsole(o) }
-=======
-  c=classe                  { Classe(c) }
-| o=objetIsole              { ObjetIsole(o) }
->>>>>>> main
+(* c=classe                  { Classe(c) }
+|*) o=objetIsole              { ObjetIsole(o) }
 
-classe:
+(*classe:
   CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomClasse=n ; listParamClasse=l ; oHeritageClasse=h ; oConstructClasse=b ; corpsClasse=c  } }
-
+*)
 corpsObjet:
-<<<<<<< HEAD
-  IS ACCOLADE_G lc=lChamp (*lm=lMethode*) ACCOLADE_D    { Corps(lc(*,lm*)) }
-=======
-  IS ACCOLADE_G lc=lChamp lm=lMethode ACCOLADE_D        { Corps(lc,lm) }
->>>>>>> main
+  IS ACCOLADE_G lc=lChamp lm=lMethode ACCOLADE_D    { Corps(lc,lm) }
 
+
+(*
 heritage:
-  EXTENDS n=NOMCLASSE PARENT_G l=optLExpr PARENT_D      { { nomHeritage=n ; listArgsHeritage=l } }
+  EXTENDS s=ID PARENT_G l=optLParam PARENT_D            { Heritage() }
+*)
 
 objetIsole:
-<<<<<<< HEAD
-  OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet        { { nomObjetIsole=n ; oConstruct=b ; corpsObjetIsole=c } }
-=======
   OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet        { { nomObjetIsole=n ; oConstructObjetIsole=b ; corpsObjetIsole=c } }
->>>>>>> main
 
 param:
   s=ID t=deType             { Param(s,t) }
 
 deType:
   DEUXPOINTS s=NOMCLASSE    { Type(s) }
-<<<<<<< HEAD
-=======
 
 optLParam:
                             { [] }
@@ -79,20 +67,12 @@ optLParam:
 lParam:
   p=param                   { [p] }
 | p=param VIRGULE l=lParam  { p::l }
->>>>>>> main
 
 lChamp:
                             { [] }
 | c=champ l=lChamp          { c::l }
 
 champ:
-<<<<<<< HEAD
-  VAR a=boption(AUTO) p=param  { Champs(a,p) }
-
-bloc:
-  ACCOLADE_G o=optLInstruc ACCOLADE_D                   { BlocLInst(o) }
-| ACCOLADE_G ld=lDeclVar IS li=lInstruc ACCOLADE_D      { BlocDecl(ld,li) }
-=======
   VAR a=boption(AUTO) p=param                           { Champs(a,p) }
 
 methode:
@@ -109,7 +89,6 @@ lMethode:
 bloc:
   ACCOLADE_G o=optLInstruc ACCOLADE_D                                               { BlocLInst(o) }
 | ACCOLADE_G ld=lDeclVar POINTVIRGULE IS li=lInstruc ACCOLADE_D                     { BlocDecl(ld,li) }
->>>>>>> main
 
 optLInstruc:
                             { [] }
@@ -120,29 +99,17 @@ lInstruc:
 | i=instruc l=lInstruc      { i::l }
 
 lDeclVar:
-<<<<<<< HEAD
   d= declVar                { [d] }
 | d= declVar l= lDeclVar    { d::l }
 
 declVar:
   l=lIdent t=deType         { Decl(l,t) }
-=======
-  d= declVar                                            { [d] }
-| d= declVar l= lDeclVar                                { d::l }
-
-declVar:
-  l=lIdent t=deType POINTVIRGULE                        { Decl(l,t) }
->>>>>>> main
 
 lIdent:
   s=ID                      { [s] }
 | s=ID VIRGULE l=lIdent     { s::l }
 
-<<<<<<< HEAD
-instruc: 
-=======
 instruc:
->>>>>>> main
   e=expr POINTVIRGULE                                   { Exp(e) }
 | b=bloc                                                { Bloc(b) }
 | RETURN POINTVIRGULE                                   { Return }
@@ -159,14 +126,3 @@ expr:
 | e1= expr CONCAT e2= expr  { Concat(e1,e2) }
 | PLUS e= expr %prec UPLUS  { e }
 | MOINS e= expr %prec UMOINS{ MoinsU(e) }
-
-<<<<<<< HEAD
-=======
-optLExpr:
-                            { [] }
-| l=lExpr                   { l }
-
-lExpr:
-  e=expr                    { [e] }
-| e=expr VIRGULE l=lExpr    { e::l }
->>>>>>> main

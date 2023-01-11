@@ -22,13 +22,7 @@ type typeType = Type of string
 
 type declType = Decl of (string list * typeType)
 
-(*type methodeMembre = *)
-
-(*type membreType = *)
-
-(* type cibleType = 
-	 Var of string 
-	 | CibleMembre of membreType *) 
+(* type cibleType = Result | *) 
 
 type instructionType = 
 	Exp of expType
@@ -67,11 +61,11 @@ type champsType = Champs of (bool * paramType)
 type corpsType = Corps of (champsType list * methodeType list)
 
 
+(*
+type heritageType = Heritage of { nomHeritage : string; listArgsHeritage : string list } | EmptyHeritage
+*)
 
-type heritageType = { nomHeritage : string; listArgsHeritage : expType list }
-
-
-
+(*
 type classeType = 
 {	nomClasse : string;
 	listParamClasse : paramType list;
@@ -79,6 +73,7 @@ type classeType =
 	oConstructClasse : blocType option;
 	corpsClasse : corpsType
 }
+*)
 
 
 type objetIsoleType = 
@@ -90,13 +85,8 @@ type objetIsoleType =
 
 
 type objetType = 
-<<<<<<< HEAD
-	(*Classe of classeType*)
-	 ObjetIsole of objetIsoleType
-=======
-	Classe of classeType
-	| ObjetIsole of objetIsoleType
->>>>>>> main
+	(*Classe of classeType
+	| *)ObjetIsole of objetIsoleType
 
 	
 type progType = Prog of (objetType list * blocType)
