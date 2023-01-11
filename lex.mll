@@ -23,6 +23,7 @@ let _ =
         "var", VAR;
         "class", CLASS;
         "extends", EXTENDS;
+        "override", OVERRIDE;
         "auto", AUTO;
         "def", DEF;
         "new", NEW;
@@ -183,4 +184,3 @@ and
                         Buffer.add_char buf c;
                         string_parse buf lexbuf
                   }
-
