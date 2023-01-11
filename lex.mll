@@ -32,6 +32,8 @@ let _ =
 }
 
 (* abréviation utiles pour les expressions rationnelles *)
+let minuscule = ['a'-'z']
+let majuscule = ['A'-'Z']
 let lettre = ['A'-'Z' 'a'-'z']
 let chiffre = ['0'-'9']
 let LC = ( chiffre | lettre )
@@ -44,7 +46,7 @@ let LC = ( chiffre | lettre )
  *)
 rule
   token = parse (* a completer *)
-   lettre LC * as id  { 
+   minuscule LC * as id  { 
                         try 
                             Hashtbl.find keyword_table id
                         with
@@ -53,6 +55,9 @@ rule
                         }
 
 
+  |  majuscule LC * as nomclasse    {
+                                        NOMCLASSE nomclasse
+                                    }
   | [' ''\t''\r']        { token lexbuf }     (* skip blanks *)
   | '\n'                 { next_line lexbuf; token lexbuf}
   | "/*"		 {
