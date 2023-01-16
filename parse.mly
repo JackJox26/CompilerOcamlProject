@@ -79,19 +79,16 @@ champ:
   VAR a=boption(AUTO) p=param                           { (a,p) }
 
 methode:
-  DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D c=methodeCorps        { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; corpsMethode=c} }
-
-methodeCorps:
-  t=deType AFFECT e=expr                                { Val(t,e) }
-| t=option(deType) IS b=bloc                            { ResultType(t,b) }
+  DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D t=deType AFFECT e=expr      { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=t corpsMethode=Bloc([],[Exp(e)])} }
+| DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D t=option(deType) IS b=bloc  { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=t corpsMethode=b} }
 
 lMethode:
                             { [] }
 | m=methode l=lMethode      { m::l }
 
 bloc:
-  ACCOLADE_G o=optLInstruc ACCOLADE_D                                               { BlocLInst(o) }
-| ACCOLADE_G ld=lDeclVar POINTVIRGULE IS li=lInstruc ACCOLADE_D                     { BlocDecl(ld,li) }
+  ACCOLADE_G o=optLInstruc ACCOLADE_D                                       { ([],o) }
+| ACCOLADE_G ld=lDeclVar POINTVIRGULE IS li=lInstruc ACCOLADE_D             { (ld,li) }
 
 optLInstruc:
                             { [] }
