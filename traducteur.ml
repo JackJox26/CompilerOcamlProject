@@ -34,3 +34,26 @@ and traducteur_instructionType t hash pt =
         ^ "\n"
         ^ "STOREG " ^ (traducteur_cibleType cible hash (pt+1))
     |_ -> ""
+
+(*
+Tout cramer et reprendre a zero
+[Fusionner verifications du contexte et generation de code]
+Faut enregistrer les variables visibles a chaque position pour l evaluation locale
+Pour les methodes il faut considerer la position relative des variables
+Hashtbl forevah
+Objets dans le stack
+(Poition?) Fonctions membres dans le stack
+sous la forme :
+    Pointeur des methodes
+    champs classe mere
+    champs classe derivee
+    champs classe derivee derivee
+    ...
+sous la forme :
+    Constructeur
+    methodes classe mere
+    methodes classe derivee
+    methodes classe derivee derivee
+    ...
+(les liens vers les methodes dynamiquement raisonnables, on lie les redefinitions)
+*)
