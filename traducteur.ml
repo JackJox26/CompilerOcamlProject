@@ -1,8 +1,7 @@
 let adresses = Hashtbl.create 64
-let test x =
-    Hashtbl.add adresses "x" 12;
-    Hashtbl.add adresses "y" 12;
-    print_endline (x)
+let _ =
+    Hashtbl.add adresses "x" "0";
+    Hashtbl.add adresses "y" "12"
 let kwa = 1
 
 (*
@@ -14,3 +13,24 @@ Quand on fait passer un message on ajoute sur l environnement les noms des membr
 
 Quand on fait une affectation, (on calcule la partie droite comme variable temporaire) et on affecte les valeurs aux emplacements de la variable en partie gauche dans la pile
 *)
+
+open Ast
+
+let rec traducteur_expType t hash pt =
+    match t with 
+    Cste(i) ->
+        "PUSHI " ^ string_of_int(i)
+    |_ -> ""
+
+and traducteur_cibleType t hash pt =
+    match t with
+    Var(str) ->
+         Hashtbl.find hash str
+    |_ -> ""
+and traducteur_instructionType t hash pt =
+    match t with
+    Affectation (cible, exp) ->
+        (traducteur_expType exp hash pt)
+        ^ "\n"
+        ^ "STOREG " ^ (traducteur_cibleType cible hash (pt+1))
+    |_ -> ""
