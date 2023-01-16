@@ -76,11 +76,11 @@ type champsType = Champs of (bool * paramType)
 type corpsType = Corps of (champsType list * methodeType list)
 
 
+(*
+type heritageType = Heritage of { nomHeritage : string; listArgsHeritage : string list } | EmptyHeritage
+*)
 
-type heritageType = { nomHeritage : string; listArgsHeritage : expType list }
-
-
-
+(*
 type classeType = 
 {	nomClasse : string;
 	listParamClasse : paramType list;
@@ -88,6 +88,7 @@ type classeType =
 	oConstructClasse : blocType option;
 	corpsClasse : corpsType
 }
+*)
 
 
 type objetIsoleType = 
@@ -99,8 +100,8 @@ type objetIsoleType =
 
 
 type objetType = 
-	Classe of classeType
-	| ObjetIsole of objetIsoleType
+	(*Classe of classeType
+	| *)ObjetIsole of objetIsoleType
 
 	
 type progType = Prog of (objetType list * blocType)

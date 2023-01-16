@@ -17,10 +17,14 @@ open Ast
 %token OVERRIDE AUTO DEF NEW RETURN OBJECT
 %token EOF
 
+%right AFFECT
+%right ELSE
+%left OPERATEUR
 %left PLUS MOINS CONCAT
 %left MUL DIV
 %left UNITAIRE
-
+%right PARENT_D (*Type cast*)
+%left POINT (*Element selection by reference*)
 
 (* l'axiome est aussi le nom de la fonction a appeler pour faire l'analyse syntaxique *)
 %start<Ast.progType> prog
@@ -35,17 +39,20 @@ lObjets:
 | o=objet l=lObjets         { o::l }
 
 objet:
-  c=classe                  { Classe(c) }
-| o=objetIsole              { ObjetIsole(o) }
+(* c=classe                  { Classe(c) }
+|*) o=objetIsole              { ObjetIsole(o) }
 
-classe:
+(*classe:
   CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomClasse=n ; listParamClasse=l ; oHeritageClasse=h ; oConstructClasse=b ; corpsClasse=c  } }
-
+*)
 corpsObjet:
   IS ACCOLADE_G lc=lChamp lm=lMethode ACCOLADE_D        { (lc,lm) }
 
+
+(*
 heritage:
-  EXTENDS n=NOMCLASSE PARENT_G l=optLExpr PARENT_D      { { nomHeritage=n ; listArgsHeritage=l } }
+  EXTENDS s=ID PARENT_G l=optLParam PARENT_D            { Heritage() }
+*)
 
 objetIsole:
   OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet        { { nomObjetIsole=n ; oConstructObjetIsole=b ; corpsObjetIsole=c } }
@@ -95,8 +102,8 @@ lInstruc:
 | i=instruc l=lInstruc      { i::l }
 
 lDeclVar:
-  d= declVar                                            { [d] }
-| d= declVar l= lDeclVar                                { d::l }
+  d= declVar                { [d] }
+| d= declVar l= lDeclVar    { d::l }
 
 declVar:
   l=lIdent t=deType POINTVIRGULE                        { (l,t) }
