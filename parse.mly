@@ -17,11 +17,14 @@ open Ast
 %token OVERRIDE AUTO DEF NEW RETURN OBJECT
 %token EOF
 
+%right AFFECT
 %right ELSE
+%left OPERATEUR
 %left PLUS MOINS CONCAT
 %left MUL DIV
 %left UPLUS UMOINS
-
+%right PARENT_D (*Type cast*)
+%left POINT (*Element selection by reference*)
 
 (* l'axiome est aussi le nom de la fonction a appeler pour faire l'analyse syntaxique *)
 %start<Ast.progType> prog
