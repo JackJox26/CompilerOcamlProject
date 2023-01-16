@@ -35,6 +35,7 @@ let output token =
     | VAR       -> "mot-clef : VAR"
     | CLASS     -> "mot-clef : CLASS"
     | EXTENDS   -> "mot-clef : EXTENDS"
+    | OVERRIDE  -> "mot-clef : OVERRIDE"
     | AUTO      -> "mot-clef : AUTO"
     | DEF       -> "mot-clef : DEF"
     | NEW       -> "mot-clef : NEW"
