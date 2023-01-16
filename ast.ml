@@ -55,7 +55,6 @@ blocType = (declType list * instructionType list)
 type champsType = (bool * paramType)
 
 
-
  type methodeType = {
 	nomMethode : string;
 	listParamMethode : paramType list;

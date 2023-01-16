@@ -5,7 +5,7 @@ open Ast
 %token <int> CSTE
 %token <string> STR
 %token <Ast.opType> OPERATEUR
-%token PLUS MOINS MUL DIV UMOINS
+%token PLUS MOINS MUL DIV
 %token PARENT_G PARENT_D
 %token ACCOLADE_G ACCOLADE_D
 %token VIRGULE POINTVIRGULE DEUXPOINTS POINT
@@ -18,12 +18,12 @@ open Ast
 %token EOF
 
 %right AFFECT
-%right ELSE
+(*%right ELSE*)
 %nonassoc OPERATEUR
 %left PLUS MOINS CONCAT
 %left MUL DIV
 %left UNITAIRE
-%right PARENT_D (*Type cast*)
+(*%right PARENT_D (*Type cast*)*)
 %left POINT (*Element selection by reference*)
 
 (* l'axiome est aussi le nom de la fonction a appeler pour faire l'analyse syntaxique *)
@@ -39,20 +39,14 @@ lObjets:
 | o=objet l=lObjets         { o::l }
 
 objet:
-  c=classe                  { Classe(c) }
-| o=objetIsole              { ObjetIsole(o) }
-
-classe:
-  CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomClasse=n ; listParamClasse=l ; oHeritageClasse=h ; oConstructClasse=b ; corpsClasse=c  } }
+  CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomObjet=n ; isObjetIsole=false ; listParamClasse=l ; oHeritageClasse=h ; oConstructObjet=b ; corpsObjet=c  } }
+| OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet                                                          { { nomObjet=n ; isObjetIsole=true ; listParamClasse=[] ; oHeritageClasse=None ; oConstructObjet=b ; corpsObjet=c } }
 
 corpsObjet:
   IS ACCOLADE_G lc=lChamp lm=lMethode ACCOLADE_D        { (lc,lm) }
 
 heritage:
-  EXTENDS s=ID PARENT_G l=optLParam PARENT_D            { Heritage() }
-
-objetIsole:
-  OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet        { { nomObjetIsole=n ; oConstructObjetIsole=b ; corpsObjetIsole=c } }
+  EXTENDS n=NOMCLASSE PARENT_G l=optLExpr PARENT_D            { { nomHeritage=n ; listArgsHeritage=l } }
 
 param:
   s=ID t=deType             { (s,t) }
@@ -76,8 +70,8 @@ champ:
   VAR a=boption(AUTO) p=param                           { (a,p) }
 
 methode:
-  DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D t=deType AFFECT e=expr      { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=t corpsMethode=Bloc([],[Exp(e)])} }
-| DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D t=option(deType) IS b=bloc  { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=t corpsMethode=b} }
+  DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D t=deType AFFECT e=expr      { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=Some(t) ; corpsMethode=([],[Exp(e)])} }
+| DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D ot=option(deType) IS b=bloc  { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=ot ; corpsMethode=b} }
 
 lMethode:
                             { [] }
@@ -115,7 +109,7 @@ instruc:
 
 cible:
   s=ID                                                  { Var(s) }
-  s1=ID POINT s2=ID                                     { CibleMembre(AutoRef(s1,s2)) }
+| s1=ID POINT s2=ID                                     { CibleMembre(AutoRef(s1,s2)) }
 | PARENT_G s1=ID PARENT_D POINT s2=ID                   { CibleMembre(AutoRef(s1,s2)) }
 | PARENT_G n=NOMCLASSE s1=ID PARENT_D POINT s2=ID       { CibleMembre(MembreMasque(n,s1,s2)) }
 
@@ -129,7 +123,7 @@ expr:
 | PARENT_G s1=ID PARENT_D POINT s2=ID                   { Membre(AutoRef(s1,s2)) }
 | PARENT_G n=NOMCLASSE s1=ID PARENT_D POINT s2=ID       { Membre(MembreMasque(n,s1,s2)) }
 | NEW n=NOMCLASSE PARENT_G l=optLParam PARENT_D         { Instance(n,l) }
-  e=expr POINT s=ID PARENT_G l=optLParam PARENT_D       { Methode(MethodeExpr(e,s,l)) }
+| e=expr POINT s=ID PARENT_G l=optLParam PARENT_D       { Methode(MethodeExpr(e,s,l)) }
 | n=NOMCLASSE POINT s=ID PARENT_G l=optLParam PARENT_D  { Methode(MethodeObjetIsole(n,s,l)) }
 | e1= expr PLUS e2= expr                                { Plus(e1,e2) }
 | e1= expr MOINS e2= expr                               { Moins(e1,e2) }
