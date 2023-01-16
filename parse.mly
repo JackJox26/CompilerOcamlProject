@@ -23,8 +23,9 @@ open Ast
 %left PLUS MOINS CONCAT
 %left MUL DIV
 %left UNITAIRE
-(*%right PARENT_D (*Type cast*)*)
-%left POINT (*Element selection by reference*)
+%nonassoc REDUCEID
+%right PARENT_D (*Type cast*)
+%left POINT (*Element selection by reference*) (*FUNCTIONCALL*)
 
 (* l'axiome est aussi le nom de la fonction a appeler pour faire l'analyse syntaxique *)
 %start<Ast.progType> prog
@@ -114,16 +115,16 @@ cible:
 | PARENT_G n=NOMCLASSE s1=ID PARENT_D POINT s2=ID       { CibleMembre(MembreMasque(n,s1,s2)) }
 
 expr:
-  s= ID                                                 { Id(s) }
+  s= ID          %prec REDUCEID                       { Id(s) }
 | v= CSTE                                               { Cste(v) }
 | s= STR                                                { Str(s) }
 | PARENT_G e=expr PARENT_D                              { e }
 | PARENT_G n=NOMCLASSE e=expr PARENT_D                  { Cast(n,e) }
 | s1=ID POINT s2=ID                                     { Membre(AutoRef(s1,s2)) }
 | PARENT_G s1=ID PARENT_D POINT s2=ID                   { Membre(AutoRef(s1,s2)) }
-| PARENT_G n=NOMCLASSE s1=ID PARENT_D POINT s2=ID       { Membre(MembreMasque(n,s1,s2)) }
-| NEW n=NOMCLASSE PARENT_G l=optLParam PARENT_D         { Instance(n,l) }
-| e=expr POINT s=ID PARENT_G l=optLParam PARENT_D       { Methode(MethodeExpr(e,s,l)) }
+(*| PARENT_G n=NOMCLASSE s1=ID PARENT_D POINT s2=ID       { Membre(MembreMasque(n,s1,s2)) }*)
+| NEW n=NOMCLASSE PARENT_G l=optLParam PARENT_D (*%prec FUNCTIONCALL*) { Instance(n,l) }
+| e=expr POINT s=ID PARENT_G l=optLParam PARENT_D (*%prec FUNCTIONCALL*) { Methode(MethodeExpr(e,s,l)) }
 | n=NOMCLASSE POINT s=ID PARENT_G l=optLParam PARENT_D  { Methode(MethodeObjetIsole(n,s,l)) }
 | e1= expr PLUS e2= expr                                { Plus(e1,e2) }
 | e1= expr MOINS e2= expr                               { Moins(e1,e2) }
