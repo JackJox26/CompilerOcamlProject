@@ -18,13 +18,13 @@ open Ast
 %token EOF
 
 %right AFFECT
-(*%right ELSE*)
 %nonassoc OPERATEUR
 %left PLUS MOINS CONCAT
 %left MUL DIV
 %left UNITAIRE
-(*%right PARENT_D (*Type cast*)*)
-%left POINT (*Element selection by reference*)
+%nonassoc REDUCEID
+%right PARENT_D (*cast*)
+%left POINT (*methode*)
 
 (* l'axiome est aussi le nom de la fonction a appeler pour faire l'analyse syntaxique *)
 %start<Ast.progType> prog
@@ -114,7 +114,7 @@ cible:
 | PARENT_G n=NOMCLASSE s1=ID PARENT_D POINT s2=ID       { MembreCibleCast(n,s1,s2) }
 
 expr:
-  s= ID                                                 { Id(s) }
+  s= ID                             %prec REDUCEID      { Id(s) }
 | v= CSTE                                               { Cste(v) }
 | s= STR                                                { Str(s) }
 | PARENT_G e=expr PARENT_D                              { e }
@@ -129,8 +129,8 @@ expr:
 | e1= expr MUL e2= expr                                 { Mult(e1,e2) }
 | e1= expr DIV e2= expr                                 { Div(e1,e2) }
 | e1= expr CONCAT e2= expr                              { Concat(e1,e2) }
-| PLUS e= expr %prec UNITAIRE                           { e }
-| MOINS e= expr %prec UNITAIRE                          { MoinsU(e) }
+| PLUS e= expr                        %prec UNITAIRE    { e }
+| MOINS e= expr                       %prec UNITAIRE    { MoinsU(e) }
 | e1=expr o=OPERATEUR e2=expr                           { Comp(e1,o,e2) }
 
 optLExpr:
