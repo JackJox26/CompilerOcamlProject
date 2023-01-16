@@ -6,9 +6,9 @@ type opType =
     |EGAL
     |NEGAL
 
-type typeType = Type of string
+type typeType = string
 
-type paramType = Param of (string * typeType)
+type paramType = (string * typeType)
 
 type membreType = 
 	AutoRef of (string*string)
@@ -35,7 +35,7 @@ and methodeMembreType =
 	|MethodeObjetIsole of (string * string * paramType list)
 
 
-type declType = Decl of (string list * typeType)
+type declType = (string list * typeType)
 
  type cibleType = 
 	 Var of string 
@@ -49,59 +49,36 @@ type instructionType =
 	| Affectation of (cibleType * expType)
 
 and
-blocType = 
-	BlocLInst of instructionType list 
-	| BlocDecl of (declType list * instructionType list)
+blocType = (declType list * instructionType list)
 
 
-type champsType = Champs of (bool * paramType)
+type champsType = (bool * paramType)
 
-
- 
- type methodeCorps = 
- 	Val of (typeType * expType) 
- 	| ResultType of (typeType option * blocType)
- 
 
 
  type methodeType = {
 	nomMethode : string;
 	listParamMethode : paramType list;
 	isOverrideMethode : bool;
-	corpsMethode : methodeCorps
+	typeRetour : typeType option;
+	corpsMethode : blocType;
  }
 
 
 
-type corpsType = Corps of (champsType list * methodeType list)
+type corpsType = (champsType list * methodeType list)
 
 
-(*
-type heritageType = Heritage of { nomHeritage : string; listArgsHeritage : string list } | EmptyHeritage
-*)
-
-(*
-type classeType = 
-{	nomClasse : string;
-	listParamClasse : paramType list;
-	oHeritageClasse : heritageType option;
-	oConstructClasse : blocType option;
-	corpsClasse : corpsType
-}
-*)
-
-
-type objetIsoleType = 
-{	
-	nomObjetIsole : string;
-	oConstructObjetIsole : blocType option;
-	corpsObjetIsole : corpsType
-}
+type heritageType = { nomHeritage : string; listArgsHeritage : expType list }
 
 
 type objetType = 
-	(*Classe of classeType
-	| *)ObjetIsole of objetIsoleType
-
+{	nomObjet : string;
+	isObjetIsole : bool;
+	listParamClasse : paramType list;
+	oHeritageClasse : heritageType option;
+	oConstructObjet : blocType option;
+	corpsObjet : corpsType
+}
 	
-type progType = Prog of (objetType list * blocType)
+type progType = (objetType list * blocType)
