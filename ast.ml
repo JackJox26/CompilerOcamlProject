@@ -6,38 +6,53 @@ type opType =
     |EGAL
     |NEGAL
 
+type typeType = Type of string
+
+type paramType = Param of (string * typeType)
+
+type membreType = 
+	AutoRef of (string*string)
+	|MembreMasque of (string*string*string) 
+
 type expType =
 	Id of string
 	|Cste of int
 	|Str of string
-	|Parent of expType
+	|Cast of (string * expType)
+	|Membre of membreType
+	|Instance of (string * paramType list)
+	|Methode of methodeMembreType
 	|Plus of (expType * expType)
 	|Moins of (expType * expType)
 	|Mult of (expType * expType)
 	|Div of (expType * expType)
 	|Concat of (expType * expType)
 	|MoinsU of expType
+	|Comp of (expType * opType * expType)
 
-type typeType = Type of string
+and methodeMembreType = 
+	MethodeExpr of (expType * string * paramType list)
+	|MethodeObjetIsole of (string * string * paramType list)
+
 
 type declType = Decl of (string list * typeType)
 
-(* type cibleType = Result | *) 
+ type cibleType = 
+	 Var of string 
+	 | CibleMembre of membreType 
 
 type instructionType = 
 	Exp of expType
 	| Bloc of blocType 
 	| IfThenElse of (expType*instructionType*instructionType)
 	| Return
-	(*| Affectation of (cibleType * expType)*)
+	| Affectation of (cibleType * expType)
 
 and
 blocType = 
 	BlocLInst of instructionType list 
 	| BlocDecl of (declType list * instructionType list)
 
-
-type paramType = Param of (string * typeType)
 
 type champsType = Champs of (bool * paramType)
 
