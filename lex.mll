@@ -1,5 +1,3 @@
-(*Faire gestion des string : ""*)
-
 {
 open Ast
 open Parse
@@ -149,16 +147,8 @@ and
 
 and
     eat_next buf = parse
-    '/'           {
-                        Buffer.add_char buf '/';
-                        string_parse buf lexbuf
-                  }
-  | '\\'           {
+    '\\'          {
                         Buffer.add_char buf '\\';
-                        string_parse buf lexbuf
-                  }
-  | 'b'           {
-                        Buffer.add_char buf '\b';
                         string_parse buf lexbuf
                   }
   | 'f'           {
