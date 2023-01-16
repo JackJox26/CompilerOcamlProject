@@ -39,20 +39,17 @@ lObjets:
 | o=objet l=lObjets         { o::l }
 
 objet:
-(* c=classe                  { Classe(c) }
-|*) o=objetIsole              { ObjetIsole(o) }
+  c=classe                  { Classe(c) }
+| o=objetIsole              { ObjetIsole(o) }
 
-(*classe:
+classe:
   CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomClasse=n ; listParamClasse=l ; oHeritageClasse=h ; oConstructClasse=b ; corpsClasse=c  } }
-*)
+
 corpsObjet:
   IS ACCOLADE_G lc=lChamp lm=lMethode ACCOLADE_D        { (lc,lm) }
 
-
-(*
 heritage:
   EXTENDS s=ID PARENT_G l=optLParam PARENT_D            { Heritage() }
-*)
 
 objetIsole:
   OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet        { { nomObjetIsole=n ; oConstructObjetIsole=b ; corpsObjetIsole=c } }
