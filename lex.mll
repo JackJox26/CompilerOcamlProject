@@ -1,5 +1,3 @@
-(*Faire gestion des string : ""*)
-
 {
 open Ast
 open Parse
@@ -23,6 +21,7 @@ let _ =
         "var", VAR;
         "class", CLASS;
         "extends", EXTENDS;
+        "override", OVERRIDE;
         "auto", AUTO;
         "def", DEF;
         "new", NEW;
@@ -148,16 +147,8 @@ and
 
 and
     eat_next buf = parse
-    '/'           {
-                        Buffer.add_char buf '/';
-                        string_parse buf lexbuf
-                  }
-  | '\\'           {
+    '\\'          {
                         Buffer.add_char buf '\\';
-                        string_parse buf lexbuf
-                  }
-  | 'b'           {
-                        Buffer.add_char buf '\b';
                         string_parse buf lexbuf
                   }
   | 'f'           {
@@ -183,4 +174,3 @@ and
                         Buffer.add_char buf c;
                         string_parse buf lexbuf
                   }
-
