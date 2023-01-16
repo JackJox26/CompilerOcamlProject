@@ -19,7 +19,7 @@ open Ast
 
 %right AFFECT
 %right ELSE
-%left OPERATEUR
+%nonassoc OPERATEUR
 %left PLUS MOINS CONCAT
 %left MUL DIV
 %left UNITAIRE
