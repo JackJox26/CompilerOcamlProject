@@ -1,15 +1,37 @@
 open Ast
 (* /!\ format a terme ce n'est pas encore le cas
-type = classe | int | string
+type = classe | Integer | string
 lvars :     list (string * type)                    -> (nomVar, type)
 lclasses :  list (string * string * liste string)   -> (nomClasse, heritage, lmethodes)
 *)
 
 let classeDeclare n lclasses =
-  If not (List.mem n (List.map (fun (x,l) -> x) lclasses) ) then raise (VC_Error ("classe non declaree: " ^ n))
-  
+  If not (List.mem n (List.map (fun (x,l) -> x) lclasses) ) then raise (VC_Error ("classe non declaree : " ^ n))
+
 let variableDeclare s lvars =
-  Var(s) -> if not (List.mem s lvars) then raise (VC_Error ("variable non declaree: " ^ s))
+  Var(s) -> if not (List.mem s lvars) then raise (VC_Error ("variable non declaree : " ^ s))
+
+(* TODO
+let methodeMembreDeclare methode typeClasse
+  if (typeClasse = Int | typeClasse = String) then raise (VC_Error ("appel de methode membre, type incompatible : " ^ typeClasse))
+  else 
+    match (List.find (fun (classe,lmethodes) -> classe=type_expr(s1)) lclasses) with
+      | (classe,lmethodes) -> TODO
+      | _ -> VC_Error ("appel de methode membre, type incompatible : " ^ typeClasse)*)
+
+(* TODO p1::lvars1;  pensez à ajouter les paramètres dans la liste des variables *)
+let vc_param p lvars lclasses=
+  let rec vc_p p1 lvars1 lclasses1 = 
+    match p1 with
+      (s, t) -> vc_type t lvars1 lclasses1;
+  in vc_p p lvars lclasses
+
+let vc_detype p lvars lclasses =
+  let rec vc_d p1 lvars1 lclasses1 =
+    match p1 with
+      n -> classeDeclare n lclasses;
+  in vc_d p lvars lclasses
+
 
 let vc_lparam lpram lvars lclasses=
   let rec vc_lp lp_rec =
@@ -29,6 +51,13 @@ let vc_instruc instruc lvars lclasses =
       | Affectation(c, e) -> vc_cible c lvars lclasses; vc_expr e lvars lclasses
   
   in vc_i instruc
+
+let vc_cible cible lvars =
+  let rec vc_c c_rec =
+    match c_rec with
+        Var(s) -> variableDeclare s lvars
+      | MembreCible(s1, s2) ->
+  in vc_c cible
 
 let vc_cible cible lvars lclasses =
   let rec vc_c c_rec =
@@ -50,10 +79,10 @@ let vc_expr expr lvars lclasses =
       | Str s -> ()
       | Cast (n, e) ->
           classeDeclare n lclasses;
-          vc_e e ()
+          vc_e e
       | Membre(s1,s2) ->
-          vc_e Id(s1);
-          vc_e Id(s2)
+          variableDeclare s1 lvars;
+          methodeMembreDeclare s2 (type_expr s1 lVars lclasses) lclasses
       | Instance(n,l) ->
           classeDeclare n lclasses;
           vc_lparam l lvars
