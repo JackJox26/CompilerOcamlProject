@@ -1,4 +1,22 @@
-let adresses = Hashtbl.create 64
+(*hashtbl de couples (nom_objet, position_adresse(dans la pile))*)
+let adresses_objets = Hashtbl.create 64
+
+(*hashtble de couples (nom_objet, nom_type)*)
+let type_objets = Hashtbl.create 64
+
+(*hashtbl de couples (nom_type, position_table_methode(dans la pile))*)
+let adresses_table_methode = Hashtbl.create 64
+
+(*hasbtbl de couples (nom_type, hashtbl de couples 
+    (nom_champ, position_champ(dans l objet))
+)*)
+let champs_types = Hashtbl.create 64
+
+(*hashtbl de couples (nom_type, hashtbl de couples 
+    (nom_methode, (position_methode(dans la table des methodes de l objet), nom_procedural_label)
+)*)
+let methodes_types = Hashtbl.create 64
+
 let _ =
     Hashtbl.add adresses "x" "0";
     Hashtbl.add adresses "y" "12"
@@ -20,6 +38,8 @@ let rec traducteur_expType t hash pt =
     match t with 
     Cste(i) ->
         "PUSHI " ^ string_of_int(i)
+    Ident(str) ->
+        
     |_ -> ""
 
 and traducteur_cibleType t hash pt =
