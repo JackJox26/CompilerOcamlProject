@@ -1,21 +1,9 @@
 open Ast
-(* verifie si l'expression renvoie pas  *)
-(* let surcharge (objet1:objet) () =
-  let rec sur_aux class1 lmethods classTemp res=
-    match e_rec with
-      typeClass x ->
-
-  in sur_aux class1 class1:methods classTemp res
-
-  module AssocListDict = struct
-    type ('k, 'v) t = ('k * 'v) list
-    let empty = []
-
-    let insert k v d = (k,v)::d
-
-    let lookup k d = List.assoc k d
-  end
-let rec  *)
+(* /!\ format a terme ce n'est pas encore le cas
+type = classe | int | string
+lvars :     list (string * type)                    -> (nomVar, type)
+lclasses :  list (string * string * liste string)   -> (nomClasse, heritage, lmethodes)
+*)
 
 let classeDeclare n lclasses =
   If not (List.mem n (List.map (fun (x,l) -> x) lclasses) ) then raise (VC_Error ("classe non declaree: " ^ n))
@@ -42,13 +30,15 @@ let vc_instruc instruc lvars lclasses =
   
   in vc_i instruc
 
-let vc_cible cible lvars =
+let vc_cible cible lvars lclasses =
   let rec vc_c c_rec =
     match c_rec with
         Var(s) -> variableDeclare s lvars
-      | MembreCible(s1, s2) ->
+      | MembreCible(s1, s2) -> vc_expr Membre(s1, s2) lvars lclasses
+      | MembreCibleCast(n, s1, s2) -> classeDeclare n lclasses ; vc_expr Membre(s1, s2) (s1,n)::lvars lclasses
   in vc_c cible
 
+(* TODO Verifier que les types sont compatibles pour pouvoir faire l'opération int et int pour (+ * - / ...) et string et string pour (&) *)
 (* verifie si l'expression e ne reference bien que des variables qui figurent dans la liste de variables lvars.
  * Leve l'exception VC_Error si une variable n'a pas été déclarée, sinon retourne () en résultat. *)
 let vc_expr expr lvars lclasses =
@@ -60,7 +50,7 @@ let vc_expr expr lvars lclasses =
       | Str s -> ()
       | Cast (n, e) ->
           classeDeclare n lclasses;
-          vc_e e
+          vc_e e ()
       | Membre(s1,s2) ->
           vc_e Id(s1);
           vc_e Id(s2)
