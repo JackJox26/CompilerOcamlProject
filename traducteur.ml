@@ -34,25 +34,36 @@ Quand on fait une affectation, (on calcule la partie droite comme variable tempo
 
 open Ast
 
+let pt = ref 0
+(*let _ = pt := !pt + 0*)
+
+let ptp () = pt := !pt + 1
+let ptm () = pt := !pt - 1
+let gpt () = !pt
+
 let rec traducteur_expType t hash pt =
     match t with 
     Cste(i) ->
-        "PUSHI " ^ string_of_int(i)
+        "PUSHI " ^ string_of_int(i) ^ "\n"
     Ident(str) ->
         
     |_ -> ""
-
-and traducteur_cibleType t hash pt =
+and traducteur_cibleType_prefix t hash pt =
+    match t with 
+    Var(str) ->
+        ""
+    |_ -> ""
+and traducteur_cibleType_suffix t hash pt =
     match t with
     Var(str) ->
-         Hashtbl.find hash str
+        "STOREG" ^ Hashtbl.find hash str ^ "\n"
     |_ -> ""
 and traducteur_instructionType t hash pt =
     match t with
     Affectation (cible, exp) ->
-        (traducteur_expType exp hash pt)
-        ^ "\n"
-        ^ "STOREG " ^ (traducteur_cibleType cible hash (pt+1))
+        (traducteur_cibleType_prefix cible hash (pt))
+        ^ (traducteur_expType exp hash pt)
+        ^ (traducteur_cibleType_suffix cible hash (pt))
     |_ -> ""
 
 (*
