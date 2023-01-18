@@ -1,5 +1,3 @@
-(*Faire gestion des string : ""*)
-
 {
 open Ast
 open Parse
@@ -23,6 +21,7 @@ let _ =
         "var", VAR;
         "class", CLASS;
         "extends", EXTENDS;
+        "override", OVERRIDE;
         "auto", AUTO;
         "def", DEF;
         "new", NEW;
@@ -41,7 +40,7 @@ let LC = ( chiffre | lettre )
 
 (* l'analyseur lexical est decomposé ici en deux fonctions: l'une qui est
  * specialisée dans la reconnaissance des commentaires à la C, l'autre qui
- * traite les autres tokens à reconnaire. les deux fonctions vont coopérer.
+ * traite les autres tokens à reconnaitre. les deux fonctions vont coopérer.
  * Tout caractere lu dans le fichier doit être reconnu quelque part !
  *)
 rule
@@ -148,16 +147,8 @@ and
 
 and
     eat_next buf = parse
-    '/'           {
-                        Buffer.add_char buf '/';
-                        string_parse buf lexbuf
-                  }
-  | '\\'           {
+    '\\'          {
                         Buffer.add_char buf '\\';
-                        string_parse buf lexbuf
-                  }
-  | 'b'           {
-                        Buffer.add_char buf '\b';
                         string_parse buf lexbuf
                   }
   | 'f'           {
@@ -183,4 +174,3 @@ and
                         Buffer.add_char buf c;
                         string_parse buf lexbuf
                   }
-
