@@ -16,8 +16,12 @@ open Ast
     let lookup k d = List.assoc k d
   end
 let rec  *)
+
 let classeDeclare n lclasses =
-  If not (List.mem n (List.map (fun (x,l) -> x) lclasses) ) then raise (VC_Error ("classe non declaree: " ^ s))
+  If not (List.mem n (List.map (fun (x,l) -> x) lclasses) ) then raise (VC_Error ("classe non declaree: " ^ n))
+  
+let variableDeclare s lvars =
+  Var(s) -> if not (List.mem s lvars) then raise (VC_Error ("variable non declaree: " ^ s))
 
 let vc_lparam lpram lvars lclasses=
   let rec vc_lp lp_rec =
@@ -27,12 +31,11 @@ let vc_lparam lpram lvars lclasses=
 
   in vc_lp lpram
 
-
 let vc_instruc instruc lvars lclasses =
   let rec vc_i i_rec =
     match i_rec with
         Expr(e) -> vc_expr e lvars lclasses
-      | Bloc(b) -> vc_bloc b lvars
+      | Bloc(b) -> vc_bloc b lvars lclasses
       | Return -> ()
       | IfThenElse(e, i1, i2) -> vc_expr e lvars lclasses; vc_i i1 lvars lclasses; vc_i i2 lvars lclasses
       | Affectation(c, e) -> vc_cible c lvars lclasses; vc_expr e lvars lclasses
@@ -42,7 +45,7 @@ let vc_instruc instruc lvars lclasses =
 let vc_cible cible lvars =
   let rec vc_c c_rec =
     match c_rec with
-        Var(s) -> if not (List.mem s lvars) then raise (VC_Error ("variable non declaree: " ^ s))
+        Var(s) -> variableDeclare s lvars
       | MembreCible(s1, s2) ->
   in vc_c cible
 
@@ -52,7 +55,7 @@ let vc_expr expr lvars lclasses =
   let rec vc_e e_rec = (* fonction auxiliaire qui parcourt récursivement e_rec *)
     match e_rec with
         Id s ->
-          if not (List.mem s lvars) then raise (VC_Error ("variable non declaree: " ^ s)) ;
+          variableDeclare s lvars
       | Cste v -> ()
       | Str s -> ()
       | Cast (n, e) ->
@@ -76,56 +79,15 @@ let vc_expr expr lvars lclasses =
           vc_e e1;
           vc_e e2
       | MoinsU(e) ->
-        vc_e e
+          vc_e e
       | Comp(e1,o,e2) ->
-        vc_e e1;
-        vc_e e2
+          vc_e e1;
+          vc_e e2
       | ne ->
-        vc_e ne
+          vc_e ne
 
   in vc_e e_rec
 
-(*  | Exp(e1) ->
-    vc_e e1
-| Bloc(e1) ->
-    vc_e e1
-| IfThenElse (si, alors, sinon) ->
-   vc_e si;
-   vc_e alors;
-   vc_e sinon
-| Affectation (g, d) ->
-    vc_e g;
-    vc_e d
-| Var (s) ->
-    vc_e s
-| MembreCible (s1,s2) ->
-    vc_e s1;
-    vc_e s2
- |MembreCibleCast(g,c,d) ->
-    vc_e g;
-    vc_e c;
-    vc_e d*)
-
-(*  | Exp(e1) ->
-    vc_e e1
-| Bloc(e1) ->
-    vc_e e1
-| IfThenElse (si, alors, sinon) ->
-   vc_e si;
-   vc_e alors;
-   vc_e sinon
-| Affectation (g, d) ->
-    vc_e g;
-    vc_e d
-| Var (s) ->
-    vc_e s
-| MembreCible (s1,s2) ->
-    vc_e s1;
-    vc_e s2
- |MembreCibleCast(g,c,d) ->
-    vc_e g;
-    vc_e c;
-    vc_e d*)
 
 (* lance les vérifications contextuelles sur la liste de déclarations ainsi
  * que l'expression finale. D'après l'énoncé il s'agit ici de vérifier que
