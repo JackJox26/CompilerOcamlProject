@@ -35,7 +35,6 @@ type expType =
 	|MoinsU of expType
 	|Comp of (expType * opType * expType)
 
-
 type declType = (string list * typeType)
 
  type cibleType = 
@@ -52,10 +51,7 @@ type instructionType =
 and
 blocType = (declType list * instructionType list)
 
-
 type champsType = (bool * paramType)
-
-
 
  type methodeType = {
 	nomMethode : string;
@@ -65,14 +61,9 @@ type champsType = (bool * paramType)
 	corpsMethode : blocType;
  }
 
-
-
 type corpsType = (champsType list * methodeType list)
 
-
-
 type heritageType = { nomHeritage : string; listArgsHeritage : expType list }
-
 
 type objetType = 
 {	nomObjet : string;
