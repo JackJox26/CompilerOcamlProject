@@ -2,17 +2,17 @@ open Ast
 (* verifie si l'expression renvoie pas  *)
 (* let surcharge (objet1:objet) () =
   let rec sur_aux class1 lmethods classTemp res=
-    match e_rec with 
+    match e_rec with
       typeClass x ->
-        
+
   in sur_aux class1 class1:methods classTemp res
 
   module AssocListDict = struct
     type ('k, 'v) t = ('k * 'v) list
     let empty = []
-  
+
     let insert k v d = (k,v)::d
-  
+
     let lookup k d = List.assoc k d
   end
 let rec  *)
@@ -21,10 +21,10 @@ let vc_lparam lpram lvars =
     match lp_rec with
       [] -> ()
       | p::l -> vc_param p lvars; vc_lp l
-  
+
   in vc_lp lpram
 
-let vc_param 
+let vc_param
 
 (* verifie si l'expression e ne reference bien que des variables qui figurent dans la liste de variables lvars.
  * Leve l'exception VC_Error si une variable n'a pas été déclarée, sinon retourne () en résultat. *)
@@ -44,7 +44,7 @@ let vc_exr expr lvars =
           vc_e Id(s2)
       | Instance(n,l) ->
           vc_e n; (* TODO comment faire pour n=NOMCLASSE *)
-          vc_lparam l lvars 
+          vc_lparam l lvars
       | MethodeExpr(e,s,l) ->
           vc_e e;
           vc_e Id(s);
@@ -61,9 +61,9 @@ let vc_exr expr lvars =
       | Comp(e1,o,e2) ->
         vc_e e1;
         vc_e e2
-      | ne -> 
+      | ne ->
         vc_e ne
-      
+
   in vc_e e_rec
 
 let vc_instruc instruc lvars =
@@ -72,7 +72,7 @@ let vc_instruc instruc lvars =
       Expr(e) ->
         vc_expr e lvars
       Bloc(b) ->
-        vc_bloc 
+        vc_bloc
 (*  | Exp(e1) ->
     vc_e e1
 | Bloc(e1) ->
@@ -122,7 +122,7 @@ let vc ld e_rec =
         (* vérifier que lhs n'a pas dejà été déclarée *)
         if List.mem lhs lvars then
           raise (VC_Error ("redeclaration de la variable " ^ lhs));
-        
+
         (* renvoie une liste avec la nouvelle variable ajoutée à la liste des
          * variables connues. L'ordre des variables dans la liste n'important
          * pas ici, on la met en tête puisque c'est plus pratique
