@@ -2,7 +2,7 @@ open Ast
 (* verifie si l'expression renvoie pas  *)
 (* let surcharge (objet1:objet) () =
   let rec sur_aux class1 lmethods classTemp res=
-    match e with 
+    match e_rec with 
       typeClass x ->
         
   in sur_aux class1 class1:methods classTemp res
@@ -16,81 +16,83 @@ open Ast
     let lookup k d = List.assoc k d
   end
 let rec  *)
+let vc_lparam lpram lvars =
+  let rec vc_lp lp_rec =
+    match lp_rec with
+      [] -> ()
+      | p::l -> vc_param p lvars; vc_lp l
+  
+  in vc_lp lpram
 
+let vc_param 
 
-
-
-(* verifie si l'expression e ne reference bien que des variables qui figurent
- * dans la liste de variables lvars.
- * Leve l'exception VC_Error si une variable n'a pas été déclarée, sinon
- * retourne () en résultat.
- *)
- let verifieExpressionCree e lvars =
-  let rec vc_e e2 = (* fonction auxiliaire qui parcourt récursivement e *)
-    match e2 with
-      Id x ->
-         if not (List.mem x lvars) then
-           raise (VC_Error ("variable non declaree: " ^ x))
-
-      | Exp(e1) ->
-          vc_e e1;
-      | Bloc(e1) ->
-          vc_e e1;
-      | IfThenElse (si, alors, sinon) ->
-         vc_e si;
-         vc_e alors;
-         vc_e sinon;
-      |Affectation (g, d) ->
-          vc_e g;
-          vc_e d;
-      
-      |Var (s) ->
-          vc_e s;
-      |MembreCible (s1,s2) ->
-          vc_e s1;
-          vc_e s2;
-      |MembreCibleCast(g,c,d) ->
-          vc_e g;
-          vc_e c;
-          vc_e d;
-
+(* verifie si l'expression e ne reference bien que des variables qui figurent dans la liste de variables lvars.
+ * Leve l'exception VC_Error si une variable n'a pas été déclarée, sinon retourne () en résultat. *)
+let vc_exr expr lvars =
+  let rec vc_e e_rec = (* fonction auxiliaire qui parcourt récursivement e_rec *)
+    match e_rec with
+        Id s ->
+          if not (List.mem s lvars) then
+            raise (VC_Error ("variable non declaree: " ^ s))
       | Cste v -> ()
       | Str s -> ()
-      | Cast (g, d) ->
-          vc_e g;
-          vc_e d;
-      | Membre(g,d) ->
-          vc_e g;
-          vc_e d;
-      | Instance(g,d) ->
-          vc_e g;
-          vc_e d;
-      | MethodeExpr(g,c,d) ->
-          vc e g;
-          vc e c;
-          vc e d;
-      | MethodeStatic(g,c,d) ->
-          vc e g;
-          vc e c;
-          vc e d;
-      | Plus(g, d) | Moins (g, d) | Mult (g, d) | Div (g, d) | Concat(g,d) ->
-          vc_e g;
-          vc_e d;
-      
-      | MoinsU e1 ->
-        vc_e e1
-
-      | Comp(op, g, d) ->
-        vc_e g;
-        vc_e d;
-
+      | Cast (n, e) ->
+          (* TODO comment faire pour n=NOMCLASSE *)
+          vc_e e
+      | Membre(s1,s2) ->
+          vc_e Id(s1);
+          vc_e Id(s2)
+      | Instance(n,l) ->
+          vc_e n; (* TODO comment faire pour n=NOMCLASSE *)
+          vc_lparam l lvars 
+      | MethodeExpr(e,s,l) ->
+          vc_e e;
+          vc_e Id(s);
+          vc_lparam l lvars
+      | MethodeStatic(n,s,l) ->
+          vc_e n; (* TODO comment faire pour n=NOMCLASSE *)
+          vc_e Id(s);
+          vc_lparam l lvars
+      | Plus(e1,e2) | Moins(e1,e2) | Mult(e1,e2) | Div(e1,e2) | Concat(e1,e2) ->
+          vc_e e1;
+          vc_e e2
+      | MoinsU(e) ->
+        vc_e e
+      | Comp(e1,o,e2) ->
+        vc_e e1;
+        vc_e e2
       | ne -> 
         vc_e ne
-
       
-      
-  in vc_e e
+  in vc_e e_rec
 
+let vc_instruc instruc lvars =
+  let rec vc_i i_rec =
+    match i_rec with
+      Expr(e) ->
+        vc_expr e lvars
+      Bloc(b) ->
+        vc_bloc 
+(*  | Exp(e1) ->
+    vc_e e1
+| Bloc(e1) ->
+    vc_e e1
+| IfThenElse (si, alors, sinon) ->
+   vc_e si;
+   vc_e alors;
+   vc_e sinon
+| Affectation (g, d) ->
+    vc_e g;
+    vc_e d
+| Var (s) ->
+    vc_e s
+| MembreCible (s1,s2) ->
+    vc_e s1;
+    vc_e s2
+ |MembreCibleCast(g,c,d) ->
+    vc_e g;
+    vc_e c;
+    vc_e d*)
 
 (* lance les vérifications contextuelles sur la liste de déclarations ainsi
  * que l'expression finale. D'après l'énoncé il s'agit ici de vérifier que
@@ -102,7 +104,7 @@ let rec  *)
  * reporte le fait qu'une variable ne soit pas déclarée indépendamment du fait
  * qu'on ait besoin ou pas de sa valeur à l'exécution.
  *)
-let vc ld e =
+let vc ld e_rec =
   (* Construit progressivement grace a List.fold_left la liste des
    * variables deja rencontrées tout en procédant aux vérifications.
    * On peut aussi faire cela avec une fonction récursive si on ne veut pas
@@ -113,10 +115,9 @@ let vc ld e =
       (fun lvars decl ->
         (* prend en paramètre l'accumulateur, ie. la liste des variables déjà
          * déclarées (initialement [], le 2eme argument de fold_left) et la
-         * déclaration à traiter.
-	 *)
+         * déclaration à traiter. *)
         let (lhs, rhs) = decl in
-        verifieExpressionCree rhs lvars; (* verifier la partie droite de la déclaration *)
+      vc rhs lvars; (* verifier la partie droite de la déclaration *)
 
         (* vérifier que lhs n'a pas dejà été déclarée *)
         if List.mem lhs lvars then
@@ -134,10 +135,10 @@ let vc ld e =
   (* on a recupéré la liste de toutes les variables déclarées, il ne reste
    * plus qu'à vérifier l'expression finale
    *)
-  verifieExpressionCree e allVars
+vc e_rec allVars
 
 
-let eval ld e =
+let eval ld e_rec =
   (* evalDecl: prend une liste de declarations et renvoie une liste
    * (variable, valeur) qui associe à chaque variable le résultat de
    * l'evaluation de l'expression en partie droite de la déclaration.
@@ -176,8 +177,8 @@ let eval ld e =
         * autre chose c'est qu'il y a un pb: AST mal construit
         *)
        failwith "unexpected situation in evalComp"
-  and evalExpr e env =
-    match e with
+  and evalExpr e_rec env =
+    match e_rec with
       Id x ->
        (* L'exception ne peut pas arriver si les vérifications contextuelles
         * sont correctes.
@@ -199,7 +200,7 @@ let eval ld e =
        if vd = 0 then
          raise (RUN_Error "division par 0")
        else vg / vd
-    | UMinus e     ->  - (evalExpr e env)
+    | UMinus e_rec     ->  - (evalExpr e_rec env)
     | Ite (si, alors, sinon) ->
        if evalComp si env then (evalExpr alors env)
        else (evalExpr sinon env)
@@ -210,5 +211,5 @@ let eval ld e =
         *)
        failwith "unexpected situation in evalExpr"
   in let final_env = evalDecl ld [] in (* traite les déclarations *)
-     evalExpr e final_env (* traite l'expression finale *)
+     evalExpr e_rec final_env (* traite l'expression finale *)
 ;;
