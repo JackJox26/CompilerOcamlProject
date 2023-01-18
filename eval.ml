@@ -19,6 +19,23 @@ let rec  *)
 
 
 
+let vc_instruc instruc lvars =
+  let rec vc_i i_rec =
+    match i_rec with
+        Expr(e) -> vc_expr e lvars
+      | Bloc(b) -> vc_bloc b lvars
+      | Return -> ()
+      | IfThenElse(e, i1, i2) -> vc_expr e lvars; vc_i i1 lvars; vc_i i2 lvars
+      | Affectation(c, e) -> vc_cible c lvars; vc_expr e lvars
+  
+  in vc_i instruc
+
+let vc_cible cible lvars =
+  let rec vc_c c_rec =
+    match c_rec with
+        Var(s) -> if not (List.mem s lvars) then raise (VC_Error ("variable non declaree: " ^ s))
+      | MembreCible(s1, s2) ->
+  in vc_c cible
 
 (* verifie si l'expression e ne reference bien que des variables qui figurent dans la liste de variables lvars.
  * Leve l'exception VC_Error si une variable n'a pas été déclarée, sinon retourne () en résultat. *)
@@ -58,15 +75,9 @@ let vc_expr expr lvars =
       | ne -> 
         vc_e ne
       
-  in vc_e e_rec
+  in vc_e expr
 
-let vc_instruc instruc lvars =
-  let rec vc_i i_rec =
-    match i_rec with
-      Expr(e) ->
-        vc_expr e lvars
-      Bloc(b) ->
-        vc_bloc 
+
 (*  | Exp(e1) ->
     vc_e e1
 | Bloc(e1) ->
