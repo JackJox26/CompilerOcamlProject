@@ -20,74 +20,63 @@ let rec  *)
 
 
 
-(* verifie si l'expression e ne reference bien que des variables qui figurent
- * dans la liste de variables lvars.
- * Leve l'exception VC_Error si une variable n'a pas été déclarée, sinon
- * retourne () en résultat.
- *)
+(* verifie si l'expression e ne reference bien que des variables qui figurent dans la liste de variables lvars.
+ * Leve l'exception VC_Error si une variable n'a pas été déclarée, sinon retourne () en résultat. *)
  let verifieExpressionCree e lvars =
-  let rec vc_e e2 = (* fonction auxiliaire qui parcourt récursivement e *)
-    match e2 with
-      Id x ->
-         if not (List.mem x lvars) then
-           raise (VC_Error ("variable non declaree: " ^ x))
-
+  let rec vc_e e_rec = (* fonction auxiliaire qui parcourt récursivement e *)
+    match e_rec with
+        Id x ->
+          if not (List.mem x lvars) then
+            raise (VC_Error ("variable non declaree: " ^ x))
       | Exp(e1) ->
-          vc_e e1;
+          vc_e e1
       | Bloc(e1) ->
-          vc_e e1;
+          vc_e e1
       | IfThenElse (si, alors, sinon) ->
          vc_e si;
          vc_e alors;
-         vc_e sinon;
+         vc_e sinon
       |Affectation (g, d) ->
           vc_e g;
-          vc_e d;
-      
+          vc_e d
       |Var (s) ->
-          vc_e s;
+          vc_e s
       |MembreCible (s1,s2) ->
           vc_e s1;
-          vc_e s2;
+          vc_e s2
       |MembreCibleCast(g,c,d) ->
           vc_e g;
           vc_e c;
-          vc_e d;
-
+          vc_e d
       | Cste v -> ()
       | Str s -> ()
       | Cast (g, d) ->
           vc_e g;
-          vc_e d;
+          vc_e d
       | Membre(g,d) ->
           vc_e g;
-          vc_e d;
+          vc_e d
       | Instance(g,d) ->
           vc_e g;
-          vc_e d;
+          vc_e d
       | MethodeExpr(g,c,d) ->
-          vc e g;
-          vc e c;
-          vc e d;
+          vc_e g;
+          vc_e c;
+          vc_e d
       | MethodeStatic(g,c,d) ->
-          vc e g;
-          vc e c;
-          vc e d;
+          vc_e g;
+          vc_e c;
+          vc_e d
       | Plus(g, d) | Moins (g, d) | Mult (g, d) | Div (g, d) | Concat(g,d) ->
           vc_e g;
-          vc_e d;
-      
+          vc_e d
       | MoinsU e1 ->
         vc_e e1
-
       | Comp(op, g, d) ->
         vc_e g;
-        vc_e d;
-
+        vc_e d
       | ne -> 
         vc_e ne
-
-      
       
   in vc_e e
 
