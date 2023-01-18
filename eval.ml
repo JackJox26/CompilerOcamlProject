@@ -4,95 +4,100 @@ open Ast
   let rec sur_aux class1 lmethods classTemp res=
     match e_rec with
       typeClass x ->
-
   in sur_aux class1 class1:methods classTemp res
-
   module AssocListDict = struct
     type ('k, 'v) t = ('k * 'v) list
     let empty = []
-
     let insert k v d = (k,v)::d
-
     let lookup k d = List.assoc k d
   end
 let rec  *)
-let vc_lparam lpram lvars =
+
+let classeDeclare n lclasses =
+  If not (List.mem n (List.map (fun (x,l) -> x) lclasses) ) then raise (VC_Error ("classe non declaree: " ^ n))
+  
+let variableDeclare s lvars =
+  Var(s) -> if not (List.mem s lvars) then raise (VC_Error ("variable non declaree: " ^ s))
+
+(* TODO p1::lvars1;  pensez à ajouter les paramètres dans la liste des variables *)
+let vc_param p lvars lclasses=
+  let rec vc_p p1 lvars1 lclasses1 = 
+    match p1 with
+      (s, t) -> vc_type t lvars1 lclasses1;
+  in vc_p p lvars lclasses
+
+let vc_detype p lvars lclasses =
+  let rec vc_d p1 lvars1 lclasses1 =
+    match p1 with
+      n -> classeDeclare n lclasses;
+  in vc_d p lvars lclasses
+
+
+let vc_lparam lpram lvars lclasses=
   let rec vc_lp lp_rec =
     match lp_rec with
       [] -> ()
-      | p::l -> vc_param p lvars; vc_lp l
+      | p::l -> vc_param p lvars lclasses; vc_lp l
 
   in vc_lp lpram
 
-let vc_param
+let vc_instruc instruc lvars lclasses =
+  let rec vc_i i_rec =
+    match i_rec with
+        Expr(e) -> vc_expr e lvars lclasses
+      | Bloc(b) -> vc_bloc b lvars lclasses
+      | Return -> ()
+      | IfThenElse(e, i1, i2) -> vc_expr e lvars lclasses; vc_i i1 lvars lclasses; vc_i i2 lvars lclasses
+      | Affectation(c, e) -> vc_cible c lvars lclasses; vc_expr e lvars lclasses
+  
+  in vc_i instruc
+
+let vc_cible cible lvars =
+  let rec vc_c c_rec =
+    match c_rec with
+        Var(s) -> variableDeclare s lvars
+      | MembreCible(s1, s2) ->
+  in vc_c cible
 
 (* verifie si l'expression e ne reference bien que des variables qui figurent dans la liste de variables lvars.
  * Leve l'exception VC_Error si une variable n'a pas été déclarée, sinon retourne () en résultat. *)
-let vc_exr expr lvars =
+let vc_expr expr lvars lclasses =
   let rec vc_e e_rec = (* fonction auxiliaire qui parcourt récursivement e_rec *)
     match e_rec with
         Id s ->
-          if not (List.mem s lvars) then
-            raise (VC_Error ("variable non declaree: " ^ s))
+          variableDeclare s lvars
       | Cste v -> ()
       | Str s -> ()
       | Cast (n, e) ->
-          (* TODO comment faire pour n=NOMCLASSE *)
+          classeDeclare n lclasses;
           vc_e e
       | Membre(s1,s2) ->
-          vc_e Id(s1);
+          vc_e Id(s1nstance(n,l) ->
+          classeDeclare n lclasses;
+ );
           vc_e Id(s2)
-      | Instance(n,l) ->
-          vc_e n; (* TODO comment faire pour n=NOMCLASSE *)
-          vc_lparam l lvars
+      | I         vc_lparam l lvars
       | MethodeExpr(e,s,l) ->
           vc_e e;
           vc_e Id(s);
           vc_lparam l lvars
       | MethodeStatic(n,s,l) ->
-          vc_e n; (* TODO comment faire pour n=NOMCLASSE *)
+          classeDeclare n lclasses;
           vc_e Id(s);
           vc_lparam l lvars
       | Plus(e1,e2) | Moins(e1,e2) | Mult(e1,e2) | Div(e1,e2) | Concat(e1,e2) ->
           vc_e e1;
           vc_e e2
       | MoinsU(e) ->
-        vc_e e
+          vc_e e
       | Comp(e1,o,e2) ->
-        vc_e e1;
-        vc_e e2
+          vc_e e1;
+          vc_e e2
       | ne ->
-        vc_e ne
+          vc_e ne
 
   in vc_e e_rec
 
-let vc_instruc instruc lvars =
-  let rec vc_i i_rec =
-    match i_rec with
-      Expr(e) ->
-        vc_expr e lvars
-      Bloc(b) ->
-        vc_bloc
-(*  | Exp(e1) ->
-    vc_e e1
-| Bloc(e1) ->
-    vc_e e1
-| IfThenElse (si, alors, sinon) ->
-   vc_e si;
-   vc_e alors;
-   vc_e sinon
-| Affectation (g, d) ->
-    vc_e g;
-    vc_e d
-| Var (s) ->
-    vc_e s
-| MembreCible (s1,s2) ->
-    vc_e s1;
-    vc_e s2
- |MembreCibleCast(g,c,d) ->
-    vc_e g;
-    vc_e c;
-    vc_e d*)
 
 (* lance les vérifications contextuelles sur la liste de déclarations ainsi
  * que l'expression finale. D'après l'énoncé il s'agit ici de vérifier que
