@@ -25,16 +25,16 @@ let rec  *)
  let vc_expr expr lvars =
   let rec vc_e e_rec = (* fonction auxiliaire qui parcourt récursivement e_rec *)
     match e_rec with
-        Id x ->
-          if not (List.mem x lvars) then
-            raise (VC_Error ("variable non declaree: " ^ x))
+        Id s ->
+          if not (List.mem s lvars) then
+            raise (VC_Error ("variable non declaree: " ^ s))
       | Cste v -> ()
       | Str s -> ()
       | Cast (n, e) ->
-          vc_e g;
+          (* TODO comment faire pour n=NOMCLASSE *)
           vc_e e
-      | Membre(g,d) ->
-          vc_e g;
+      | Membre(s1,s2) ->
+          vc_e Id(s1);
           vc_e d
       | Instance(g,d) ->
           vc_e g;
@@ -103,8 +103,7 @@ let vc ld e_rec =
       (fun lvars decl ->
         (* prend en paramètre l'accumulateur, ie. la liste des variables déjà
          * déclarées (initialement [], le 2eme argument de fold_left) et la
-         * déclaration à traiter.
-	 *)
+         * déclaration à traiter. *)
         let (lhs, rhs) = decl in
       vc rhs lvars; (* verifier la partie droite de la déclaration *)
 
