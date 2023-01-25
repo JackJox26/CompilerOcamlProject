@@ -57,7 +57,7 @@ let ptp () = pt := !pt + 1
 let ptm () = pt := !pt - 1
 let gpt () = !pt
 
-let rec traducteur_expType_get t hash =
+let rec traducteur_expType t hash =
     match t with 
     Cste(i) ->
         ptp ();
@@ -68,10 +68,17 @@ let rec traducteur_expType_get t hash =
     |Id(str) ->
         ptp ();
         "PUSHG " ^ (Hashtbl.find hash.adresse_objets str) ^ "\n"
+    |Membre(str1, str2) ->
+        let _str =
+            (Hashtbl.find hash.adresse_objets str1)
+        in
+        ptm ();
+        _str
+        ^ "LOAD " ^ (Hashtbl.find (Hashtbl.find hash.champs_types (Hashtbl.find hash.type_objets str1)) str2)
     |Plus(exp1, exp2) ->
         let _str =
-            (traducteur_expType_get exp1 hash)
-            ^ (traducteur_expType_get exp2 hash)
+            (traducteur_expType exp1 hash)
+            ^ (traducteur_expType exp2 hash)
         in
         ptm ();
         ptm ();
@@ -79,8 +86,8 @@ let rec traducteur_expType_get t hash =
         ^ "ADD" ^ "\n"
     |Moins(exp1, exp2) ->
         let _str =
-            (traducteur_expType_get exp1 hash)
-            ^ (traducteur_expType_get exp2 hash)
+            (traducteur_expType exp2 hash)
+            ^ (traducteur_expType exp1 hash)
         in
         ptm ();
         ptm ();
@@ -88,8 +95,8 @@ let rec traducteur_expType_get t hash =
         ^ "SUB" ^ "\n"
     |Mult(exp1, exp2) ->
         let _str =
-            (traducteur_expType_get exp1 hash)
-            ^ (traducteur_expType_get exp2 hash)
+            (traducteur_expType exp1 hash)
+            ^ (traducteur_expType exp2 hash)
         in
         ptm ();
         ptm ();
@@ -97,8 +104,8 @@ let rec traducteur_expType_get t hash =
         ^ "MUL" ^ "\n"
     |Div(exp1, exp2) ->
         let _str =
-            (traducteur_expType_get exp1 hash)
-            ^ (traducteur_expType_get exp2 hash)
+            (traducteur_expType exp2 hash)
+            ^ (traducteur_expType exp1 hash)
         in
         ptm ();
         ptm ();
@@ -106,8 +113,8 @@ let rec traducteur_expType_get t hash =
         ^ "DIV" ^ "\n"
     |Concat(exp1, exp2) ->
         let _str =
-            (traducteur_expType_get exp1 hash)
-            ^ (traducteur_expType_get exp2 hash)
+            (traducteur_expType exp2 hash)
+            ^ (traducteur_expType exp1 hash)
         in
         ptm ();
         ptm ();
@@ -115,27 +122,37 @@ let rec traducteur_expType_get t hash =
         ^ "CONCAT" ^ "\n"
     |MoinsU(exp) ->
         let _str =
-            (traducteur_expType_get (Cste(0)) hash)
-            ^ (traducteur_expType_get exp hash)
+            (traducteur_expType exp hash)
+            ^ (traducteur_expType (Cste(0)) hash)
         in
         ptm ();
         ptm ();
         _str
         ^ "SUB" ^ "\n"
     |_ -> ""
-and traducteur_expType_set t hash =
-    ptm ();
-    "STOREG " ^ (Hashtbl.find hash.adresse_objets t) ^ "\n"
-and traducteur_cibleType t hash =
+and traducteur_cibleType t exp_d hash =
     match t with 
     Var(str) ->
-        (traducteur_expType_set str hash)
+        let _str =
+            (traducteur_expType exp_d hash)
+        in
+        ptm ();
+        _str
+        ^ "STOREG " ^ (Hashtbl.find hash.adresse_objets t) ^ "\n"
+    |MembreCible(str1, str2) ->
+        let _str =
+            (Hashtbl.find hash.adresse_objets str1)
+            ^ (traducteur_expType exp hash)
+        in
+        ptm ();
+        ptm ();
+        _str
+        ^ "STORE " ^ (Hashtbl.find (Hashtbl.find hash.champs_types (Hashtbl.find hash.type_objets str1)) str2)
     |_ -> ""
 and traducteur_instructionType t hash =
     match t with
     Affectation (cible, exp) ->
-        (traducteur_expType_get exp hash)
-        ^ (traducteur_cibleType cible hash)
+        (traducteur_cibleType cible exp hash)
     |_ -> ""
 
 (*
