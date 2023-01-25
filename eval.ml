@@ -2,7 +2,7 @@ open Ast
 (* /!\ format a terme ce n'est pas encore le cas
 type = classe | Integer | string
 lvars :     list (string * type)                    -> (nomVar, type)
-lclasses :  list (string * string * liste string)   -> (nomClasse, heritage, lmethodes)
+lclasses :  list (string * string * liste string)   -> (nomClasse, heritageClasseParente, lmethodes)
 *)
 
 let classeDeclare n lclasses =
