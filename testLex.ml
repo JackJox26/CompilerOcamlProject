@@ -41,8 +41,8 @@ let output token =
     | NEW       -> "mot-clef : NEW"
     | OBJECT    -> "mot-clef : OBJECT"
     | RETURN    -> "mot-clef : RETURN"
-    | UMOINS ->
-       failwith "UMOINS seen in testLex" (*N est jamais genere par l analyse lexicale*)
+    | UNITAIRE ->
+       failwith "UNITAIRE seen in testLex" (*N est jamais genere par l analyse lexicale*)
     | EOF      -> (* gere avant l'appel a cette fonction, donc impossible *)
        failwith "Should not happen in testLex"
     | _ -> "Unexpected token in testLex"
