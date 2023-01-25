@@ -1,7 +1,7 @@
 INTERFACES = parse.mli
-SOURCES    = ast.ml parse.ml lex.ml main.ml
+SOURCES    = ast.ml parse.ml lex.ml main.ml eval.ml
 #GENERATED  = parse.ml parse.mli parse.automaton parse.conflicts
-GENERATED  = lex.ml parse.ml parse.mli parse.automaton parse.conflicts
+GENERATED  = lex.ml parse.ml parse.mli parse.automaton parse.conflicts 
 
 testLex : parse.mli lex.ml testLex.ml ast.mli
 	ocamlc -c ast.ml
