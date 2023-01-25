@@ -30,14 +30,14 @@ open Ast
 %start<Ast.progType> prog
 %%
 
-   
+
+deType:
+  DEUXPOINTS n=NOMCLASSE    { n }
+
 
 param:
   s=ID t=deType             { (s,t) }
 
-deType:
-  DEUXPOINTS n=NOMCLASSE    { n }
-   
 optLParam:
                             { [] }
 | l=lParam                  { l }
@@ -47,25 +47,14 @@ lParam:
 | p=param VIRGULE l=lParam  { p::l }
  
 
-
-optLExpr:
-                            { [] }
-| l=lExpr                   { l }
-
-lExpr:
-  e=expr                    { [e] }
-| e=expr VIRGULE l=lExpr    { e::l }
-
-
-
 expr:
   s= ID                             %prec REDUCEID      { Id(s) }
 | v= CSTE                                               { Cste(v) }
 | s= STR                                                { Str(s) }
 | PARENT_G e=expr PARENT_D                              { e }
 | PARENT_G n=NOMCLASSE e=expr PARENT_D                  { Cast(n,e) }
-| s1=ID POINT s2=ID                                     { Membre(s1,s2) }
-| PARENT_G s1=ID PARENT_D POINT s2=ID                   { Membre(s1,s2) }
+| s1=ID POINT s2=ID                                     { Membre(s1,s2) } (*this ou super*)
+| PARENT_G s1=ID PARENT_D POINT s2=ID                   { Membre(s1,s2) } (*this ou super*)
 | NEW n=NOMCLASSE PARENT_G l=optLParam PARENT_D         { Instance(n,l) }
 | e=expr POINT s=ID PARENT_G l=optLParam PARENT_D       { MethodeExpr(e,s,l) }
 | n=NOMCLASSE POINT s=ID PARENT_G l=optLParam PARENT_D  { MethodeStatic(n,s,l) }
@@ -77,14 +66,24 @@ expr:
 | PLUS e= expr                        %prec UNITAIRE    { e }
 | MOINS e= expr                       %prec UNITAIRE    { MoinsU(e) }
 | e1=expr o=OPERATEUR e2=expr                           { Comp(e1,o,e2) }
-     
-  
+
+lExpr:
+  e=expr                    { [e] }
+| e=expr VIRGULE l=lExpr    { e::l }
+
+optLExpr:
+                            { [] }
+| l=lExpr                   { l }
+
+
+declVar:
+  l=lIdent t=deType POINTVIRGULE
+
 lDeclVar:
   d= declVar                { [d] }
 | d= declVar l= lDeclVar    { d::l }
+                     { (l,t) }
 
-declVar:
-  l=lIdent t=deType POINTVIRGULE                        { (l,t) }
 
 cible:
   s=ID                                                  { Var(s) }
@@ -94,15 +93,6 @@ cible:
    
 
 
-optLInstruc:
-                            { [] }
-| l=lInstruc                { l }
-
-
-
-lInstruc:
-  i=instruc                 { [i] }
-| i=instruc l=lInstruc      { i::l }
      
 lIdent:
   s=ID                      { [s] }
@@ -119,31 +109,40 @@ instruc:
 | RETURN POINTVIRGULE                                   { Return }
 | IF e=expr THEN i1=instruc ELSE i2=instruc             { IfThenElse(e,i1,i2) }
 | c=cible AFFECT e= expr                                { Affectation(c,e) }
-     
+
+lInstruc:
+  i=instruc                 { [i] }
+| i=instruc l=lInstruc      { i::l }
+
+optLInstruc:
+                            { [] }
+| l=lInstruc                { l }
+
+
+champ:
+  VAR a=boption(AUTO) p=param                           { (a,p) }
 
 lChamp:
                             { [] }
 | c=champ l=lChamp          { c::l }
-  
-champ:
-  VAR a=boption(AUTO) p=param                           { (a,p) }
- 
+
+
+methode:
+  DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D t=deType AFFECT e=expr      { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=Some(t) ; corpsMethode=([],[Exp(e)])} }
+| DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D ot=option(deType) IS b=bloc  { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=ot ; corpsMethode=b} }
 
 lMethode:
                             { [] }
 | m=methode l=lMethode      { m::l }
  
-methode:
-  DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D t=deType AFFECT e=expr      { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=Some(t) ; corpsMethode=([],[Exp(e)])} }
-| DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D ot=option(deType) IS b=bloc  { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=ot ; corpsMethode=b} }
- 
+
+corpsObjet:
+  IS ACCOLADE_G lc=lChamp lm=lMethode ACCOLADE_D        { (lc,lm) }
+
 
 heritage:
   EXTENDS n=NOMCLASSE PARENT_G l=optLExpr PARENT_D            { { nomHeritage=n ; listArgsHeritage=l } }
  
-
-corpsObjet:
-  IS ACCOLADE_G lc=lChamp lm=lMethode ACCOLADE_D        { (lc,lm) }
 
 objet:
   CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomObjet=n ; isObjetIsole=false ; listParamClasse=l ; oHeritageClasse=h ; oConstructObjet=b ; corpsObjet=c  } }
@@ -152,6 +151,7 @@ objet:
 lObjets:
                             { [] }
 | o=objet l=lObjets         { o::l }
+
 
 prog:
   l=lObjets b=bloc EOF      { (l,b) }

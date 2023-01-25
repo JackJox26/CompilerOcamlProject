@@ -1,99 +1,91 @@
 open Ast
-(* /!\ format a terme ce n'est pas encore le cas
-type = classe | Integer | string
-lvars :     list (string * type)                    -> (nomVar, type)
-lclasses :  list (string * string * liste string)   -> (nomClasse, heritageClasseParente, lmethodes)
+(*
+type = string                                             -> nomClasse
+  integer classe avec methode toString
+  String classe avec methodes print et println
+
+
+tabVars :     Hashtbl (string * type)                     -> (nomVar, typeVar)
+tabClasses :  Hashtbl (string * (string * tabMethodes))   -> (nomClasse, (heritageClasseParente, tabMethodesMembres))
+
+tabMethodes : Hashtbl (string * type)                     -> (nomMethode, typeRetour)
+dont methode CONSTRUCTEUR
 *)
 
-let classeDeclare n lclasses =
-  If not (List.mem n (List.map (fun (x,l) -> x) lclasses) ) then raise (VC_Error ("classe non declaree : " ^ n))
+(* retourne le type de s *)
+let classeGetType n tabClasses =
+  try (Hashtbl.find tabClasses n ; Classe(n))
+  with Not_found -> raise (VC_Error ("classe non declaree : " ^ n))
 
-let variableDeclare s lvars =
-  Var(s) -> if not (List.mem s lvars) then raise (VC_Error ("variable non declaree : " ^ s))
-
-(* TODO
-let methodeMembreDeclare methode typeClasse
-  if (typeClasse = Int | typeClasse = String) then raise (VC_Error ("appel de methode membre, type incompatible : " ^ typeClasse))
-  else 
-    match (List.find (fun (classe,lmethodes) -> classe=type_expr(s1)) lclasses) with
-      | (classe,lmethodes) -> TODO
-      | _ -> VC_Error ("appel de methode membre, type incompatible : " ^ typeClasse)*)
-
-(* TODO p1::lvars1;  pensez à ajouter les paramètres dans la liste des variables *)
-let vc_param p lvars lclasses=
-  let rec vc_p p1 lvars1 lclasses1 = 
-    match p1 with
-      (s, t) -> vc_type t lvars1 lclasses1;
-  in vc_p p lvars lclasses
-
-let vc_detype p lvars lclasses =
-  let rec vc_d p1 lvars1 lclasses1 =
-    match p1 with
-      n -> classeDeclare n lclasses;
-  in vc_d p lvars lclasses
+let classeDeclare n tabClasses = classeGetType n tabClasses ; ()
 
 
-let vc_lparam lpram lvars lclasses=
-  let rec vc_lp lp_rec =
+(* retourne le type de s *)
+let variableGetType s tabVars =
+  try (Hashtbl.find tabVars s)
+  with Not_found -> VC_Error ("variable non declaree : " ^ s)
+
+let variableDeclare s tabVars = variableGetType s tabVars ; ()
+
+
+(* retourne le type de retour de la methode *)
+let methodeMembreGetType methode typeClasse tabVars tabClasses
+  match type_c with
+    | Classe(c) ->  let rec mmgt_rec c_rec =
+                      try match (Hashtbl.find tabClasses c_rec) with
+                        | (h, tab_m) ->
+                            try (Hashtbl.find tab_m methode)
+                            with Not_found -> mmgt_rec h
+                      with Not_found -> (VC_Error ("classe non declaree : " ^ tc))
+                    in mmgt_rec c
+    | Integer(_) -> raise (VC_Error ("appel de methode membre, type incompatible : Integer"))
+    | String(_) -> raise (VC_Error ("appel de methode membre, type incompatible : String"))
+
+
+
+
+(* retourne tabVars actualise *)
+let vc_param p tabVars tabClasses=
+  match p with
+    (s, t) -> Hashtbl.add tabVars s (classeGetType t tabClasses)
+
+(* retourne tabVars actualise *)
+let vc_lparam lpram tabVars tabClasses=
+  let rec vc_lp lp_rec tabVars_rec =
     match lp_rec with
-      [] -> ()
-      | p::l -> vc_param p lvars lclasses; vc_lp l
-
+      | [] -> tabVars_rec
+      | p::l -> vc_lp l (vc_param p tabVars_rec tabClasses)
   in vc_lp lpram
 
-let vc_instruc instruc lvars lclasses =
-  let rec vc_i i_rec =
-    match i_rec with
-        Expr(e) -> vc_expr e lvars lclasses
-      | Bloc(b) -> vc_bloc b lvars lclasses
-      | Return -> ()
-      | IfThenElse(e, i1, i2) -> vc_expr e lvars lclasses; vc_i i1 lvars lclasses; vc_i i2 lvars lclasses
-      | Affectation(c, e) -> vc_cible c lvars lclasses; vc_expr e lvars lclasses
-  
-  in vc_i instruc
-
-let vc_cible cible lvars =
-  let rec vc_c c_rec =
-    match c_rec with
-        Var(s) -> variableDeclare s lvars
-      | MembreCible(s1, s2) ->
-  in vc_c cible
-
-let vc_cible cible lvars lclasses =
-  let rec vc_c c_rec =
-    match c_rec with
-        Var(s) -> variableDeclare s lvars
-      | MembreCible(s1, s2) -> vc_expr Membre(s1, s2) lvars lclasses
-      | MembreCibleCast(n, s1, s2) -> classeDeclare n lclasses ; vc_expr Membre(s1, s2) (s1,n)::lvars lclasses
-  in vc_c cible
-
-(* TODO Verifier que les types sont compatibles pour pouvoir faire l'opération int et int pour (+ * - / ...) et string et string pour (&) *)
-(* verifie si l'expression e ne reference bien que des variables qui figurent dans la liste de variables lvars.
- * Leve l'exception VC_Error si une variable n'a pas été déclarée, sinon retourne () en résultat. *)
-let vc_expr expr lvars lclasses =
-  let rec vc_e e_rec = (* fonction auxiliaire qui parcourt récursivement e_rec *)
+(* retourne son type *)
+let vc_expr expr tabVars tabClasses =
+  let rec vc_e e_rec =
     match e_rec with
-        Id s ->
-          variableDeclare s lvars
-      | Cste v -> ()
-      | Str s -> ()
+      | Id s -> variableGetType s tabVars
+      | Cste v -> Integer(v)
+      | Str s -> String(s)
       | Cast (n, e) ->
-          classeDeclare n lclasses;
-          vc_e e
+          match (vc_e e) with
+          | Classe(c) ->  try match (Hashtbl.find tabClasses c) with
+                            | (*TODO*)
+                          with Not_found -> (VC_Error ("classe non declaree : " ^ tc))
+          | Integer(_) -> raise (VC_Error ("impossible de caster, type incompatible : Integer"))
+          | String(_) -> raise (VC_Error ("impossible de caster, type incompatible : String"))
+                    classeGetType n tabClasses
       | Membre(s1,s2) ->
-          variableDeclare s1 lvars;
-          methodeMembreDeclare s2 (type_expr s1 lVars lclasses) lclasses
+          variableDeclare s1 tabVars;
+          methodeMembreDeclare s2 (type_expr s1 lVars) tabClasses
       | Instance(n,l) ->
-          classeDeclare n lclasses;
-          vc_lparam l lvars
+          classeDeclare n tabClasses;
+          vc_lparam l tabVars
       | MethodeExpr(e,s,l) ->
           vc_e e;
           vc_e Id(s);
-          vc_lparam l lvars
+          vc_lparam l tabVars
       | MethodeStatic(n,s,l) ->
-          classeDeclare n lclasses;
+          classeDeclare n tabClasses;
           vc_e Id(s);
-          vc_lparam l lvars
+          vc_lparam l tabVars
       | Plus(e1,e2) | Moins(e1,e2) | Mult(e1,e2) | Div(e1,e2) | Concat(e1,e2) ->
           vc_e e1;
           vc_e e2
@@ -104,10 +96,29 @@ let vc_expr expr lvars lclasses =
           vc_e e2
       | ne ->
           vc_e ne
-
   in vc_e e_rec
 
 
+let vc_instruc instruc tabVars tabClasses =
+  let rec vc_i i_rec =
+    match i_rec with
+        Expr(e) -> vc_expr e tabVars tabClasses
+      | Bloc(b) -> vc_bloc b tabVars tabClasses
+      | Return -> ()
+      | IfThenElse(e, i1, i2) -> vc_expr e tabVars tabClasses; vc_i i1 tabVars tabClasses; vc_i i2 tabVars tabClasses
+      | Affectation(c, e) -> vc_cible c tabVars tabClasses; vc_expr e tabVars tabClasses
+  in vc_i instruc
+
+
+let vc_cible cible tabVars tabClasses =
+  match cible with
+      Var(s) -> variableDeclare s tabVars
+    | MembreCible(s1, s2) -> vc_expr Membre(s1, s2) tabVars tabClasses
+    | MembreCibleCast(n, s1, s2) -> classeDeclare n tabClasses ; vc_expr Membre(s1, s2) (s1,n)::tabVars tabClasses
+
+  
+
+(*
 (* lance les vérifications contextuelles sur la liste de déclarations ainsi
  * que l'expression finale. D'après l'énoncé il s'agit ici de vérifier que
  * les expressions ne référencent que des variables déclarées et qu'une variable
@@ -126,22 +137,22 @@ let vc ld e_rec =
    *)
   let allVars =
     List.fold_left (* voir la doc de fold_left pour le rôle des 3 arguments *)
-      (fun lvars decl ->
+      (fun tabVars decl ->
         (* prend en paramètre l'accumulateur, ie. la liste des variables déjà
          * déclarées (initialement [], le 2eme argument de fold_left) et la
          * déclaration à traiter. *)
         let (lhs, rhs) = decl in
-      vc rhs lvars; (* verifier la partie droite de la déclaration *)
+      vc rhs tabVars; (* verifier la partie droite de la déclaration *)
 
         (* vérifier que lhs n'a pas dejà été déclarée *)
-        if List.mem lhs lvars then
+        if List.mem lhs tabVars then
           raise (VC_Error ("redeclaration de la variable " ^ lhs));
 
         (* renvoie une liste avec la nouvelle variable ajoutée à la liste des
          * variables connues. L'ordre des variables dans la liste n'important
          * pas ici, on la met en tête puisque c'est plus pratique
          *)
-        lhs::lvars
+        lhs::tabVars
       ) (* fin de la fonction qui est le premier argument de fold_left *)
       [] (* valeur initiale de l'accumulateur *)
       ld (* liste a parcourir par fold_left *)
@@ -226,4 +237,4 @@ let eval ld e_rec =
        failwith "unexpected situation in evalExpr"
   in let final_env = evalDecl ld [] in (* traite les déclarations *)
      evalExpr e_rec final_env (* traite l'expression finale *)
-;;
+;;*)
