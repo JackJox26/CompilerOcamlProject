@@ -34,12 +34,44 @@ Quand on fait une affectation, (on calcule la partie droite comme variable tempo
 
 open Ast
 
+(*compteur position courante dans la pile avec methode d'accès et maj*)
 let pt = ref 0
-(*let _ = pt := !pt + 0*)
 
 let ptp () = pt := !pt + 1
 let ptm () = pt := !pt - 1
 let gpt () = !pt
+
+(*let _ = pt := !pt + 0*)
+
+
+(*compteur nb etiquette avec methode d'accès et maj*)
+let cmptEti = ref 0
+
+let cmptEtip () = cmptEti := !cmptEti + 1
+let cmptEtim () = cmptEti := !cmptEti - 1
+let cmptEtig () = !cmptEti
+
+
+(*compteur nb etiquette de if then else avec methode d'accès et maj (*! différent de cmptEti pour correction bugs *)*)
+let cmptITE = ref 0
+
+let cmptITEp () = cmptITE := !cmptITE + 1
+let cmptITEm () = cmptITE := !cmptITE - 1
+let cmptITEg () = !cmptITE
+
+
+
+let genLabelEti() =
+    let e in
+    e = "e" ^ string_of_int cmptEtig
+    cmptEtip;
+    e
+
+let genLabelITE() = 
+    let i in
+    i = "i" ^ string_of_int cmptITEg
+    cmptITEp;
+    i
 
 let rec traducteur_expType t hash pt =
     match t with 
@@ -66,6 +98,40 @@ and traducteur_instructionType t hash pt =
         ^ (traducteur_cibleType_suffix cible hash (pt))
     |_ -> ""
 
+
+(*générateur code d'une methode
+    paramètre : label = label associé à la méhotde
+                methode = arbre ast de la methode
+                hashtable = la hashtable du traducteur pour la visibilité des objets*)
+
+let traducteur_methode label methode hashtable = (*TODO*)
+    ""
+    ^ match methode with
+    |None ->
+    |_ ->
+    
+
+(*générateur code du programme
+    paramètre : p = ast du programme
+                ?(*A ajoute*) = la hashtable du traducteur pour stockage et acces des positions dans la pile*)
+
+(*ATTENTION : où on écrit ? string ou print ? fichier en paramètre ? + hashtable des hashtables à ajouter en param et appelée lorsque prête*)
+
+let traducteur_prog p (**hashtable à ajouter*) =
+    match p with
+    |(l,_) -> List.iter (fun o -> "ALLOC " 
+        ^ match o.corpsType with 
+        |(_,ml) -> add adresses_table_methode o.nomObjet gpt; ptp; 
+                add methodes_types o.nomObjet Hashtbl.create 20; 
+                let eti =  genLabelEti in 
+                add (find methodes_types o.nomObjet) "constructeur" (0,eti) ; 
+                traducteur_methode eti o.oConstructObjet (*hshtable à ajouter*); 
+                List.iteri (fun i m -> let eti2 = genLabelEti in add (find methodes_types o.nomObjet) m.nomMethode ((i+1),genLabelEti); (*Appel methode genMethode*)) ml; string_of_int (ml.length + 1) ^ "\n" 
+        ^ if o.isObjetIsole then "ALLOC "  (*! if pas au bon endroit*)
+        ^ match o.corpsType with
+            |(cl,_) -> add adresses_objets o.nomObjet gpt; ptp; add type_objets o.nomObjet o.nomObjet; string_of_int (cl.length + 1) ^ "\n" 
+                ^ "PUSHG " ^ ... ^ "\n" ^ "PUSHG " ^ ... ^ "\n" ^ ... ^ "STORE 0\n") l
+    
 (*
 Tout cramer et reprendre a zero
 [Fusionner verifications du contexte et generation de code]
