@@ -1,26 +1,42 @@
 (*hashtbl de couples (nom_objet, position_adresse(dans la pile))*)
-let adresses_objets = Hashtbl.create 64
+let _adresse_objets = Hashtbl.create 64
 
 (*hashtble de couples (nom_objet, nom_type)*)
-let type_objets = Hashtbl.create 64
+let _type_objets = Hashtbl.create 64
 
 (*hashtbl de couples (nom_type, position_table_methode(dans la pile))*)
-let adresses_table_methode = Hashtbl.create 64
+let _adresse_tables_methodes = Hashtbl.create 64
 
 (*hasbtbl de couples (nom_type, hashtbl de couples 
     (nom_champ, position_champ(dans l objet))
 )*)
-let champs_types = Hashtbl.create 64
+let _champs_types = Hashtbl.create 64
 
 (*hashtbl de couples (nom_type, hashtbl de couples 
     (nom_methode, (position_methode(dans la table des methodes de l objet), nom_procedural_label)
 )*)
-let methodes_types = Hashtbl.create 64
+let _methodes_types = Hashtbl.create 64
 
 let _ =
-    Hashtbl.add adresses "x" "0";
-    Hashtbl.add adresses "y" "12"
+    Hashtbl.add _adresse_objets "x" "0";
+    Hashtbl.add _adresse_objets "y" "12"
 let kwa = 1
+
+type hashtbls = {
+    adresse_objets : (string, string) Hashtbl.t;
+    type_objets : (string, string) Hashtbl.t;
+    adresse_tables_methodes : (string, string) Hashtbl.t;
+    champs_types : (string, ((string, string) Hashtbl.t)) Hashtbl.t;
+    methodes_types : (string, ((string, (string)) Hashtbl.t)) Hashtbl.t
+}
+
+let hashtbl = {
+    adresse_objets = _adresse_objets;
+    type_objets = _type_objets;
+    adresse_tables_methodes = _adresse_tables_methodes;
+    champs_types = _champs_types;
+    methodes_types = _methodes_types
+}
 
 (*
 Quand on declare une classe ou un objet, on cree un element de Hashtbl avec le nom de l element et les types de ses membres en resultat (y compris pour les methodes)
@@ -41,29 +57,85 @@ let ptp () = pt := !pt + 1
 let ptm () = pt := !pt - 1
 let gpt () = !pt
 
-let rec traducteur_expType t hash pt =
+let rec traducteur_expType_get t hash =
     match t with 
     Cste(i) ->
+        ptp ();
         "PUSHI " ^ string_of_int(i) ^ "\n"
-    Ident(str) ->
-        
+    |Str(str) ->
+        ptp ();
+        "PUSHS " ^ str ^ "\n"
+    |Id(str) ->
+        ptp ();
+        "PUSHG " ^ (Hashtbl.find hash.adresse_objets str) ^ "\n"
+    |Plus(exp1, exp2) ->
+        let _str =
+            (traducteur_expType_get exp1 hash)
+            ^ (traducteur_expType_get exp2 hash)
+        in
+        ptm ();
+        ptm ();
+        _str 
+        ^ "ADD" ^ "\n"
+    |Moins(exp1, exp2) ->
+        let _str =
+            (traducteur_expType_get exp1 hash)
+            ^ (traducteur_expType_get exp2 hash)
+        in
+        ptm ();
+        ptm ();
+        _str 
+        ^ "SUB" ^ "\n"
+    |Mult(exp1, exp2) ->
+        let _str =
+            (traducteur_expType_get exp1 hash)
+            ^ (traducteur_expType_get exp2 hash)
+        in
+        ptm ();
+        ptm ();
+        _str 
+        ^ "MUL" ^ "\n"
+    |Div(exp1, exp2) ->
+        let _str =
+            (traducteur_expType_get exp1 hash)
+            ^ (traducteur_expType_get exp2 hash)
+        in
+        ptm ();
+        ptm ();
+        _str 
+        ^ "DIV" ^ "\n"
+    |Concat(exp1, exp2) ->
+        let _str =
+            (traducteur_expType_get exp1 hash)
+            ^ (traducteur_expType_get exp2 hash)
+        in
+        ptm ();
+        ptm ();
+        _str 
+        ^ "CONCAT" ^ "\n"
+    |MoinsU(exp) ->
+        let _str =
+            (traducteur_expType_get (Cste(0)) hash)
+            ^ (traducteur_expType_get exp hash)
+        in
+        ptm ();
+        ptm ();
+        _str
+        ^ "SUB" ^ "\n"
     |_ -> ""
-and traducteur_cibleType_prefix t hash pt =
+and traducteur_expType_set t hash =
+    ptm ();
+    "STOREG " ^ (Hashtbl.find hash.adresse_objets t) ^ "\n"
+and traducteur_cibleType t hash =
     match t with 
     Var(str) ->
-        ""
+        (traducteur_expType_set str hash)
     |_ -> ""
-and traducteur_cibleType_suffix t hash pt =
-    match t with
-    Var(str) ->
-        "STOREG" ^ Hashtbl.find hash str ^ "\n"
-    |_ -> ""
-and traducteur_instructionType t hash pt =
+and traducteur_instructionType t hash =
     match t with
     Affectation (cible, exp) ->
-        (traducteur_cibleType_prefix cible hash (pt))
-        ^ (traducteur_expType exp hash pt)
-        ^ (traducteur_cibleType_suffix cible hash (pt))
+        (traducteur_expType_get exp hash)
+        ^ (traducteur_cibleType cible hash)
     |_ -> ""
 
 (*
@@ -73,7 +145,7 @@ Faut enregistrer les variables visibles a chaque position pour l evaluation loca
 Pour les methodes il faut considerer la position relative des variables
 Hashtbl forevah
 Objets dans le stack
-(Poition?) Fonctions membres dans le stack
+(Position?) Fonctions membres dans le stack
 sous la forme :
     Pointeur des methodes
     champs classe mere
