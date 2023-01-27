@@ -25,20 +25,20 @@ type expType =
 	|Div of (expType * expType)
 	|Concat of (expType * expType)
 	|MoinsU of expType
-	|Comp of (expType * opType * expType)
 
+type compType = (expType * opType * expType)
 
 type declType = (string list * typeType)
 
- type cibleType = 
-	 Var of string 
-	 | MembreCible of (string * string)
-	 | MembreCibleCast of (string * string * string)
+type cibleType = 
+	Var of string 
+	| MembreCible of (string * string)
+	| MembreCibleCast of (string * string * string)
 
 type instructionType = 
 	Exp of expType
 	| Bloc of blocType 
-	| IfThenElse of (expType*instructionType*instructionType)
+	| IfThenElse of (compType*instructionType*instructionType)
 	| Return
 	| Affectation of (cibleType * expType)
 

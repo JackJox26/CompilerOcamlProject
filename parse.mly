@@ -107,7 +107,7 @@ instruc:
   e=expr POINTVIRGULE                                   { Exp(e) }
 | b=bloc                                                { Bloc(b) }
 | RETURN POINTVIRGULE                                   { Return }
-| IF e=expr THEN i1=instruc ELSE i2=instruc             { IfThenElse(e,i1,i2) }
+| IF cmp=comp THEN i1=instruc ELSE i2=instruc           { IfThenElse(cmp,i1,i2) }
 | c=cible AFFECT e= expr                                { Affectation(c,e) }
 
 lInstruc:
@@ -148,9 +148,9 @@ objet:
   CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomObjet=n ; isObjetIsole=false ; listParamClasse=l ; oHeritageClasse=h ; oConstructObjet=b ; corpsObjet=c  } }
 | OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet                                                          { { nomObjet=n ; isObjetIsole=true ; listParamClasse=[] ; oHeritageClasse=None ; oConstructObjet=b ; corpsObjet=c } }
 
-lObjets:
+lObjet:
                             { [] }
-| o=objet l=lObjets         { o::l }
+| o=objet l=lObjet          { o::l }
 
 
 prog:
