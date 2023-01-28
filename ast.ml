@@ -10,15 +10,16 @@ type typeType = string
 
 type paramType = (string * typeType)
 
+
 type expType =
 	Id of string
 	|Cste of int
 	|Str of string
 	|Cast of (string * expType)
 	|Membre of (string * string)
-	|Instance of (string * paramType list)
-	|MethodeExpr of (expType * string * paramType list)
-	|MethodeStatic of (string * string * paramType list)
+	|Instance of (string * expType list)
+	|MethodeExpr of (expType * string * expType list)
+	|MethodeLocal of (string * string * expType list)
 	|Plus of (expType * expType)
 	|Moins of (expType * expType)
 	|Mult of (expType * expType)
