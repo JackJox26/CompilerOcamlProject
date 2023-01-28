@@ -78,12 +78,12 @@ optLExpr:
 
 
 declVar:
-  l=lIdent t=deType POINTVIRGULE
+  l=lIdent t=deType POINTVIRGULE                        { (l,t) }
 
 lDeclVar:
   d= declVar                { [d] }
 | d= declVar l= lDeclVar    { d::l }
-                     { (l,t) }
+
 
 
 cible:
@@ -99,10 +99,6 @@ lIdent:
   s=ID                      { [s] }
 | s=ID VIRGULE l=lIdent     { s::l }
 
-bloc:
-  ACCOLADE_G o=optLInstruc ACCOLADE_D                                       { ([],o) }
-| ACCOLADE_G ld=lDeclVar POINTVIRGULE IS li=lInstruc ACCOLADE_D             { (ld,li) }
-  
 
 instruc:
   e=expr POINTVIRGULE                                   { Exp(e) }
@@ -118,6 +114,11 @@ lInstruc:
 optLInstruc:
                             { [] }
 | l=lInstruc                { l }
+
+
+bloc:
+  ACCOLADE_G o=optLInstruc ACCOLADE_D                                       { ([],o) }
+| ACCOLADE_G ld=lDeclVar POINTVIRGULE IS li=lInstruc ACCOLADE_D             { (ld,li) }
 
 
 champ:
