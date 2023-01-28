@@ -1,10 +1,15 @@
 open Ast
 (*
-tabVars :     Hashtbl string * string                         -> nomVar : typeVar
-tabClasses :  Hashtbl string * (option string * tabMethodes)  -> nomClasse : (heritageClasseParente, tabMethodesMembres)
+type tabVars = (string, typeType) t                           -> nomVar : typeVar
+  dont this du type de la classe courante
+  dont super du type du parent de la classe courante
 
-tabMethodes : Hashtbl (string * list string) * string         -> (nomMethode, lParamType) : typeRetour
-dont methode 0_CONSTRUCTEUR
+type tabClasses = (string, (string option * tabMethodes)) t   -> nomClasse : (heritageClasseParente, tabMethodesMembres)
+
+type signatureMethode = (string * typeType list)              -> (nomMethode, lParamType)
+
+type tabMethodes = (signatureMethode, typeType) t             -> signatureMethode : typeRetour
+  dont methode 0_construct qui correspond  aux constructeurs de la classe
 *)
 
 (* retourne le type de s *)
@@ -18,22 +23,22 @@ let classeDeclare n tabClasses = classeGetType n tabClasses ; ()
 (* retourne le type de s *)
 let variableGetType s tabVars =
   try (Hashtbl.find tabVars s)
-  with Not_found -> VC_Error ("variable non declaree : " ^ s)
+  with Not_found -> raise (VC_Error ("variable non declaree : " ^ s))
 
 let variableDeclare s tabVars = variableGetType s tabVars ; ()
 
 
 (* retourne le type de retour de la methode *)
-let methodeMembreGetType methode typeClasse tabVars tabClasses
+let methodeMembreGetType signatureMethode typeClasse tabVars tabClasses
   let rec mmgt_rec c_rec =
     try match (Hashtbl.find tabClasses c_rec) with
       | (herit, tab_m) ->
-          try (Hashtbl.find tab_m methode)
+          try (Hashtbl.find tab_m signatureMethode)
           with Not_found ->
             match herit with
-              | One(h) -> mmgt_rec h
-              | None() -> (VC_Error ("pas de methode avec ce nom dans la classe : " ^ typeClasse ^ " (ni dans ces classes heritees jusqu'a : " ^ h ^ ")"))
-    with Not_found -> (VC_Error ("classe non declaree : " ^ c_rec))
+              | Some(h) -> mmgt_rec h
+              | None -> raise (VC_Error ("pas de methode avec cette signature, dans la classe : " ^ typeClasse ^ " (ni dans ces classes heritees jusqu'a : " ^ h ^ ")"))
+    with Not_found -> raise (VC_Error ("classe non declaree : " ^ c_rec))
   in mmgt_rec type_c
 
 
@@ -51,12 +56,13 @@ let communVars tabVars1 tabVars2 =
     res
 
 
-(* retourne tabVars actualise *)
+
+(* retourne tabVars actualise avec le parametre ajoute comme une variable suplementaire *)
 let vc_param p tabVars tabClasses =
   match p with
     (s, t) -> Hashtbl.add tabVars s (classeGetType t tabClasses)
 
-(* retourne tabVars actualise *)
+(* retourne tabVars actualise avec les parametres ajoutes comme des variables suplementaires *)
 let vc_lparam lpram tabVars tabClasses=
   let rec vc_lp lp_rec tabVars_rec =
     match lp_rec with
@@ -67,15 +73,26 @@ let vc_lparam lpram tabVars tabClasses=
 
 (* retourne son type *)
 let vc_expr expr tabVars tabClasses =
-  let rec vc_e e_rec =
+  let rec exprEstInteger e =
+    let typeExpr = vc_e e
+    in
+      if (typeExpr="Integer") then "Integer"
+      else (VC_Error ("type incorecte pour operation numerique : " ^ typeExpr))
+  and vc_e e_rec =
     match e_rec with
       | Id s -> variableGetType s tabVars
       | Cste v -> "Integer"
       | Str s -> "String"
       | Cast (n, e) ->
-          try match (Hashtbl.find tabClasses (vc_e e)) with
-            | (*TODO*)
-          with Not_found -> (VC_Error ("classe non declaree : " ^ tc))
+          try match (Hashtbl.find tabClasses (vc_e e)) with (herit, _) ->
+            match herit with
+              | None -> raise (VC_Error ("cast invalide car n'herite pas de : " ^ n))
+              | Some(h) ->
+                  if(n=h) then
+                    n
+                  else
+                    vc_e Cast(n, h)
+          with Not_found -> raise (VC_Error ("classe non declaree : " ^ tc))
       | Membre(s1,s2) ->
           variableDeclare s1 tabVars;
           methodeMembreDeclare s2 (type_expr s1 lVars) tabClasses
@@ -83,15 +100,29 @@ let vc_expr expr tabVars tabClasses =
           classeDeclare n tabClasses;
           vc_lparam l tabVars
       | MethodeExpr(e,s,l) -> (*TODO*)
-      | MethodeStatic(n,s,l) -> (*TODO*)
-      | Plus(e1,e2) | Moins(e1,e2) | Mult(e1,e2) | Div(e1,e2) | Concat(e1,e2) ->
-          vc_e e1;
-          vc_e e2
+      | MethodeLocal(n,s,l) ->
+          vc_e MethodeExpr(Id(n),s,l)
+      | Plus(e1,e2) | Moins(e1,e2) | Mult(e1,e2) | Div(e1,e2) ->
+        exprEstInteger e1 ; exprEstInteger e2
+      | Concat(e1,e2) ->
+          let type1 = vc_e e1 in
+          let type2 = vc_e e2
+          in
+            if ((type1="String") && (type2="String")) then "String"
+            else raise (VC_Error ("type incorecte pour la concatenation : Concat(" ^ type1 ^ ", " ^ type2 ^")"))
       | MoinsU(e) ->
-          vc_e e
+          exprInteger e
       | ne ->
           vc_e ne
   in vc_e e_rec
+
+(* retourne la liste des types *)
+let vc_lexpr lexpr tabVars tabClasses=
+  let rec vc_le le_rec =
+    match le_rec with
+      | [] -> []
+      | e::l -> (vc_expr e tabVars tabClasses)::(vc_le l)
+  in vc_le lexpr
 
 
 (* Ne retourne rien *)
@@ -124,10 +155,10 @@ let vc_prog prog =
   let tabMethodesStr = Hashtbl.create 2
   in
     Hashtbl.add tabMethodesInt ("toString", []) "String";
-    Hashtbl.add tabMethodesStr ("print", []) (* TODO type void ? *);
-    Hashtbl.add tabMethodesStr ("println", []) (* TODO type void ? *);
-    Hashtbl.add tabClasses ("Integer", None(), tabMethodesInt);
-    Hashtbl.add tabClasses ("String", None(), tabMethodesStr);
+    Hashtbl.add tabMethodesStr ("print", []) "Void";
+    Hashtbl.add tabMethodesStr ("println", []) "Void";
+    Hashtbl.add tabClasses ("Integer", None, tabMethodesInt);
+    Hashtbl.add tabClasses ("String", None, tabMethodesStr);
     match prog with (l,b) -> vc_bloc b (vc_lobjets l tabClasses)
 
 (*
