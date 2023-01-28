@@ -94,12 +94,13 @@ let vc_expr expr tabVars tabClasses =
                     vc_e Cast(n, h)
           with Not_found -> raise (VC_Error ("classe non declaree : " ^ tc))
       | Membre(s1,s2) ->
-          variableDeclare s1 tabVars;
-          methodeMembreDeclare s2 (type_expr s1 lVars) tabClasses
+          if (s1="This" || s1="Super") then
+            variableDeclare s2 tabVars (* Ici on ne fait pas toutes les verifs la variable n'est pas forcement un champ et peut-être local ou plus general *)
+          else raise (VC_Error ("impossible d'acceder a un champ externe (limite a This ou Super) : " ^ s1 ^ "." ^s2))
       | Instance(n,l) ->
-          classeDeclare n tabClasses;
-          vc_lparam l tabVars
-      | MethodeExpr(e,s,l) -> (*TODO*)
+          methodeMembreGetType ("0_construct", l) n tabVars tabClasses
+      | MethodeExpr(e,s,l) ->
+          methodeMembreGetType (s, l) e tabVars tabClasses
       | MethodeLocal(n,s,l) ->
           vc_e MethodeExpr(Id(n),s,l)
       | Plus(e1,e2) | Moins(e1,e2) | Mult(e1,e2) | Div(e1,e2) ->
@@ -116,15 +117,15 @@ let vc_expr expr tabVars tabClasses =
           vc_e ne
   in vc_e e_rec
 
-(* retourne la liste des types *)
-let vc_lexpr lexpr tabVars tabClasses=
+(* retourne la liste des types des expressions *)
+let vc_lexpr lexpr tabVars tabClasses =
   let rec vc_le le_rec =
     match le_rec with
       | [] -> []
       | e::l -> (vc_expr e tabVars tabClasses)::(vc_le l)
   in vc_le lexpr
 
-
+(*TODO CONTINUER*)
 (* Ne retourne rien *)
 let vc_comp comp tabVars tabClasses
   match comp with (e1,o,e2) -> vc_e e1 ; vc_e e2 ; ()
