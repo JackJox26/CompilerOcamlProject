@@ -1,14 +1,14 @@
 open Ast
 (*
-type tabVars = (string, typeType) t                           -> nomVar : typeVar
+type tabVars = (string, typeType) t                                     -> nomVar : typeVar
   dont this du type de la classe courante
   dont super du type du parent de la classe courante
 
-type tabClasses = (string, (string option * tabMethodes)) t   -> nomClasse : (heritageClasseParente, tabMethodesMembres)
+type tabClasses = (string, (string option * tabMethodes * tabVars)) t   -> nomClasse : (heritageClasseParente, tabMethodesMembres, tabChamps)
 
-type signatureMethode = (string * typeType list)              -> (nomMethode, lParamType)
+type signatureMethode = (string * typeType list)                        -> (nomMethode, lParamType)
 
-type tabMethodes = (signatureMethode, typeType) t             -> signatureMethode : typeRetour
+type tabMethodes = (signatureMethode, typeType) t                       -> signatureMethode : typeRetour
   dont methode 0_construct qui correspond  aux constructeurs de la classe
 *)
 
@@ -32,7 +32,7 @@ let variableDeclare s tabVars = variableGetType s tabVars ; ()
 let methodeMembreGetType signatureMethode typeClasse tabVars tabClasses
   let rec mmgt_rec c_rec =
     try match (Hashtbl.find tabClasses c_rec) with
-      | (herit, tab_m) ->
+      | (herit, tab_m, _) ->
           try (Hashtbl.find tab_m signatureMethode)
           with Not_found ->
             match herit with
@@ -84,7 +84,7 @@ let vc_expr expr tabVars tabClasses =
       | Cste v -> "Integer"
       | Str s -> "String"
       | Cast (n, e) ->
-          try match (Hashtbl.find tabClasses (vc_e e)) with (herit, _) ->
+          try match (Hashtbl.find tabClasses (vc_e e)) with (herit, _, _) ->
             match herit with
               | None -> raise (VC_Error ("cast invalide car n'herite pas de : " ^ n))
               | Some(h) ->
@@ -94,8 +94,18 @@ let vc_expr expr tabVars tabClasses =
                     vc_e Cast(n, h)
           with Not_found -> raise (VC_Error ("classe non declaree : " ^ tc))
       | Membre(s1,s2) ->
-          if (s1="This" || s1="Super") then
-            variableDeclare s2 tabVars (* Ici on ne fait pas toutes les verifs la variable n'est pas forcement un champ et peut-être local ou plus general *)
+          if (s1="This") then
+            try match (Hashtbl.find tabClasses (Hashtbl.find tabVars "This")) with
+              |  (_, _, tabChamps) ->
+                  try (Hashtbl.find tabVars s2)
+                  with Not_found -> raise (VC_Error ("La classe n'a pas d'attribut : " ^ s2))
+            with Not_found -> raise (VC_Error ("This appele en dehors d'une classe !"))
+          else if (s1="Super") then
+            try match (Hashtbl.find tabClasses (Hashtbl.find tabVars "Super")) with
+              |  (_, _, tabChamps) ->
+                  try (Hashtbl.find tabVars s2)
+                  with Not_found -> raise (VC_Error ("La classe n'a pas d'attribut : " ^ s2))
+            with Not_found -> raise (VC_Error ("Super appele en dehors d'une classe ayant un parent !"))
           else raise (VC_Error ("impossible d'acceder a un champ externe (limite a This ou Super) : " ^ s1 ^ "." ^s2))
       | Instance(n,l) ->
           methodeMembreGetType ("0_construct", l) n tabVars tabClasses
@@ -118,31 +128,24 @@ let vc_expr expr tabVars tabClasses =
   in vc_e e_rec
 
 (* retourne la liste des types des expressions *)
-let vc_lexpr lexpr tabVars tabClasses =
+let vc_lExpr lexpr tabVars tabClasses =
   let rec vc_le le_rec =
     match le_rec with
       | [] -> []
       | e::l -> (vc_expr e tabVars tabClasses)::(vc_le l)
   in vc_le lexpr
 
-(*TODO CONTINUER*)
+
 (* Ne retourne rien *)
 let vc_comp comp tabVars tabClasses
   match comp with (e1,o,e2) -> vc_e e1 ; vc_e e2 ; ()
 
 
-(* TODO retourner tabVars actualise *)
-let vc_instruc instruc tabVars tabClasses =
-  let rec vc_i i_rec =
-    match i_rec with
-      | Expr(e) -> vc_expr e tabVars tabClasses ; tabVars
-      | Bloc(b) -> vc_bloc b tabVars tabClasses
-      | Return -> tabVars
-      | IfThenElse(cmp, i1, i2) -> vc_comp cmp tabVars tabClasses ; communVars (vc_i i1 tabVars tabClasses) (vc_i i2 tabVars tabClasses)
-      | Affectation(c, e) -> vc_cible c tabVars tabClasses ; vc_expr e tabVars tabClasses
-  in vc_i instruc
+(* retourne le tabVars actualise *)
+let vc_declVar declVar (* TODO *)
 
 
+(* Ne retourne rien *)
 let vc_cible cible tabVars tabClasses =
   match cible with
     | Var(s) -> variableDeclare s tabVars
@@ -150,6 +153,22 @@ let vc_cible cible tabVars tabClasses =
     | MembreCibleCast(n, s1, s2) -> classeDeclare n tabClasses ; vc_expr Membre(s1, s2) (s1,n)::tabVars tabClasses
 
 
+(* Ne retourne rien *)
+let vc_instruc instruc tabVars tabClasses =
+  let rec vc_i i_rec =
+    match i_rec with
+      | Expr(e) -> vc_expr e tabVars tabClasses ; ()
+      | Bloc(b) -> vc_bloc b tabVars tabClasses
+      | Return -> ()
+      | IfThenElse(cmp, i1, i2) -> vc_comp cmp tabVars tabClasses ; vc_i i1 tabVars tabClasses ; vc_i i2 tabVars tabClasses ; ()
+      | Affectation(c, e) -> vc_cible c tabVars tabClasses ; vc_expr e tabVars tabClasses ; ()
+  in vc_i instruc
+
+
+(* Ne retourne rien *)
+let vc_bloc bloc (* TODO *)
+
+(* Ne retourne rien *)
 let vc_prog prog =
   let tabClasses = Hashtbl.create 10 in 
   let tabMethodesInt = Hashtbl.create 1 in
