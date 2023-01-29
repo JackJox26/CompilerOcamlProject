@@ -6,7 +6,9 @@ type opType =
     |EGAL
     |NEGAL
 
+
 type typeType = string
+
 
 type paramType = (string * typeType)
 
@@ -27,14 +29,18 @@ type expType =
 	|Concat of (expType * expType)
 	|MoinsU of expType
 
+
 type compType = (expType * opType * expType)
 
+
 type declType = (string list * typeType)
+
 
 type cibleType = 
 	Var of string 
 	| MembreCible of (string * string)
 	| MembreCibleCast of (string * string * string)
+
 
 type instructionType = 
 	Exp of expType
@@ -45,6 +51,7 @@ type instructionType =
 
 and
 blocType = (declType list * instructionType list)
+
 
 type champsType = (bool * paramType)
 
@@ -59,7 +66,9 @@ corpsMethode : blocType;
 
 type corpsType = (champsType list * methodeType list)
 
+
 type heritageType = { nomHeritage : string; listArgsHeritage : expType list }
+
 
 type objetType = 
 {	nomObjet : string;
