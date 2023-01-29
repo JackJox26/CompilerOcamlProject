@@ -10,35 +10,36 @@ type typeType = string
 
 type paramType = (string * typeType)
 
+
 type expType =
 	Id of string
 	|Cste of int
 	|Str of string
 	|Cast of (string * expType)
 	|Membre of (string * string)
-	|Instance of (string * paramType list)
-	|MethodeExpr of (expType * string * paramType list)
-	|MethodeStatic of (string * string * paramType list)
+	|Instance of (string * expType list)
+	|MethodeExpr of (expType * string * expType list)
+	|MethodeLocal of (string * string * expType list)
 	|Plus of (expType * expType)
 	|Moins of (expType * expType)
 	|Mult of (expType * expType)
 	|Div of (expType * expType)
 	|Concat of (expType * expType)
 	|MoinsU of expType
-	|Comp of (expType * opType * expType)
 
+type compType = (expType * opType * expType)
 
 type declType = (string list * typeType)
 
- type cibleType = 
-	 Var of string 
-	 | MembreCible of (string * string)
-	 | MembreCibleCast of (string * string * string)
+type cibleType = 
+	Var of string 
+	| MembreCible of (string * string)
+	| MembreCibleCast of (string * string * string)
 
 type instructionType = 
 	Exp of expType
 	| Bloc of blocType 
-	| IfThenElse of (expType*instructionType*instructionType)
+	| IfThenElse of (compType*instructionType*instructionType)
 	| Return
 	| Affectation of (cibleType * expType)
 
@@ -49,13 +50,13 @@ blocType = (declType list * instructionType list)
 type champsType = (bool * paramType)
 
 
- type methodeType = {
-	nomMethode : string;
-	listParamMethode : paramType list;
-	isOverrideMethode : bool;
-	typeRetour : typeType option;
-	corpsMethode : blocType;
- }
+type methodeType = {
+nomMethode : string;
+listParamMethode : paramType list;
+isOverrideMethode : bool;
+typeRetour : typeType option;
+corpsMethode : blocType;
+}
 
 
 
