@@ -74,5 +74,11 @@ type objetType =
 	oConstructObjet : blocType option;
 	corpsObjet : corpsType
 }
-	
+
+
 type progType = (objetType list * blocType)
+
+
+exception VC_Error of string
+exception RUN_Error of string
+exception MISC_Error of string
