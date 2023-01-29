@@ -58,7 +58,7 @@ expr:
 | PARENT_G s1=ID PARENT_D POINT s2=ID                   { Membre(s1,s2) } (*this ou super*)
 | NEW n=NOMCLASSE PARENT_G l=optLExpr PARENT_D          { Instance(n,l) }
 | e=expr POINT s=ID PARENT_G l=optLExpr PARENT_D        { MethodeExpr(e,s,l) }
-| n=NOMCLASSE POINT s=ID PARENT_G l=optLArg PARENT_D    { MethodeLocal(n,s,l) }
+| n=NOMCLASSE POINT s=ID PARENT_G l=optLExpr PARENT_D   { MethodeLocal(n,s,l) }
 | e1= expr PLUS e2= expr                                { Plus(e1,e2) }
 | e1= expr MOINS e2= expr                               { Moins(e1,e2) }
 | e1= expr MUL e2= expr                                 { Mult(e1,e2) }
@@ -66,7 +66,6 @@ expr:
 | e1= expr CONCAT e2= expr                              { Concat(e1,e2) }
 | PLUS e= expr                        %prec UNITAIRE    { e }
 | MOINS e= expr                       %prec UNITAIRE    { MoinsU(e) }
-| e1=expr o=OPERATEUR e2=expr                           { Comp(e1,o,e2) }
 
 lExpr:
   e=expr                    { [e] }
@@ -75,6 +74,10 @@ lExpr:
 optLExpr:
                             { [] }
 | l=lExpr                   { l }
+
+
+comp:
+  e1=expr o=OPERATEUR e2=expr                           { (e1,o,e2) }
 
 
 declVar:
@@ -150,9 +153,9 @@ objet:
   CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomObjet=n ; isObjetIsole=false ; listParamClasse=l ; oHeritageClasse=h ; oConstructObjet=b ; corpsObjet=c  } }
 | OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet                                                          { { nomObjet=n ; isObjetIsole=true ; listParamClasse=[] ; oHeritageClasse=None ; oConstructObjet=b ; corpsObjet=c } }
 
-lObjet:
+lObjets:
                             { [] }
-| o=objet l=lObjet          { o::l }
+| o=objet l=lObjets          { o::l }
 
 
 prog:

@@ -26,9 +26,9 @@ let parse_with_error lexbuf file_in chan =
     Parse.Error -> (* levée par l'analyseur syntaxique *)
     Printf.fprintf stderr "Syntax error at position %a\n" print_position lexbuf;
     exit (-1)
-  (*| VC_Error msg ->
+  | VC_Error msg ->
      Printf.fprintf stderr "Erreur contextuelle: %s\n" msg;
-     exit (-1)*)
+     exit (-1)
   (*| RUN_Error msg -> (* uniquement pour la version interprete *)
      Printf.fprintf stderr "Erreur à l'execution: %s\n" msg;
      exit (-1)*)

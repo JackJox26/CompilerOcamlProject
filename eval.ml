@@ -1,12 +1,12 @@
 open Ast
 (*
-type tabVars = (string, typeType) t                                     -> nomVar : typeVar
+type tabVars = (string, typeType) Hashtbl.t                                     -> nomVar : typeVar
   dont this du type de la classe courante
   dont super du type du parent de la classe courante
 
-type tabClasses = (string, (string option * tabMethodes * tabVars)) t   -> nomClasse : (heritageClasseParente, tabMethodesMembres, tabChamps)
+type tabClasses = (string, (string option * tabMethodes * tabVars)) Hashtbl.t   -> nomClasse : (heritageClasseParente, tabMethodesMembres, tabChamps)
 
-type tabMethodes = (string, typeType list * typeType) t                 -> nomMethode : lParamType, typeRetour
+type tabMethodes = (string, typeType list * typeType) Hashtbl.t                 -> nomMethode : lParamType, typeRetour
   dont methode 0_construct qui correspond  aux constructeurs de la classe
 *)
 
@@ -29,26 +29,29 @@ let variableDeclare s tabVars = variableGetType s tabVars ; ()
 
 
 (* retourne le type de retour de la methode *)
-let methodeMembreGetType typeClasse nomMethode paramMethode tabVars tabClasses
-  let matchParam paramAttendus paramFournits =
+let methodeMembreGetType typeClasse nomMethode paramMethode tabVars tabClasses =
+  let rec matchParam paramAttendus paramFournits =
     match paramFournits with
-      | [] -> if(paramAttendus=[]) then True else False
+      | [] -> if(paramAttendus=[]) then true else false
       | f::rf ->
           match paramAttendus with
-            | [] -> False
+            | [] -> false
             | a::ra ->
                 if(f=a) then
                   matchParam ra rf
                 else
                   try match (Hashtbl.find tabClasses f) with
-                      | (h_paramFournit, _, _) -> matchParam paramAttendus (h_paramFournit::rf)
-                  with Not_found -> False
+                      | (hopt_paramFournit, _, _) -> 
+                          match hopt_paramFournit with
+                            | Some(h_paramFournit) -> matchParam paramAttendus (h_paramFournit::rf)
+                            | None -> false
+                  with Not_found -> false
   in
-    let matchSignatureGetType lposibilites =
+    let rec matchSignatureGetType lposibilites =
       match lposibilites with
       | [] -> raise (Not_here)
       | posib::r ->
-          match posib with (parmPosib, resPosib)
+          match posib with (parmPosib, resPosib) ->
             if (matchParam parmPosib paramMethode) then
               resPosib
             else
@@ -57,14 +60,14 @@ let methodeMembreGetType typeClasse nomMethode paramMethode tabVars tabClasses
       let rec mmgt_rec c_rec =
         try match (Hashtbl.find tabClasses c_rec) with
           | (herit, tab_m, _) ->
-              try  (Hashtbl.find_all tab_m nomMethode)
+              try match (Hashtbl.find_all tab_m nomMethode) with (_,resType) -> resType
               with
                 Not_found | Not_here ->
                   match herit with
                     | Some(h) -> mmgt_rec h
-                    | None -> raise (VC_Error ("pas de methode avec cette signature, dans la classe : " ^ typeClasse ^ " (ni dans ces classes heritees jusqu'a : " ^ h ^ ")"))
+                    | None -> raise (VC_Error ("pas de methode avec cette signature, dans la classe : " ^ typeClasse ^ if(typeClasse!=c_rec) then (" (ni dans ces classes heritees jusqu'a : " ^ c_rec ^ ")") else ""))
         with Not_found -> raise (VC_Error ("classe non declaree : " ^ c_rec))
-      in mmgt_rec type_c
+      in mmgt_rec typeClasse
 
 
 (* retourne un tabVars avec les valeurs communes entre tabVars1 et tabVars2*)
@@ -85,7 +88,7 @@ let communVars tabVars1 tabVars2 =
 (* retourne tabVars actualise avec le parametre ajoute comme une variable suplementaire *)
 let vc_param p tabVars tabClasses =
   match p with
-    (s, t) -> Hashtbl.add tabVars s (classeGetType t tabClasses)
+    (s, t) -> Hashtbl.add tabVars s (classeGetType t tabClasses) ; tabVars
 
 (* retourne tabVars actualise avec les parametres ajoutes comme des variables suplementaires *)
 let vc_lparam lpram tabVars tabClasses=
@@ -97,27 +100,29 @@ let vc_lparam lpram tabVars tabClasses=
 
 
 (* retourne son type *)
-let vc_expr expr tabVars tabClasses =
+let rec vc_expr expr tabVars tabClasses =
   let rec exprEstInteger e =
     let typeExpr = vc_e e
     in
       if (typeExpr="Integer") then "Integer"
-      else (VC_Error ("type incorecte pour operation numerique : " ^ typeExpr))
+      else raise (VC_Error ("type incorecte pour operation numerique : " ^ typeExpr))
   and vc_e e_rec =
     match e_rec with
       | Id s -> variableGetType s tabVars
       | Cste v -> "Integer"
       | Str s -> "String"
       | Cast (n, e) ->
-          try match (Hashtbl.find tabClasses (vc_e e)) with (herit, _, _) ->
-            match herit with
-              | None -> raise (VC_Error ("cast invalide car n'herite pas de : " ^ n))
-              | Some(h) ->
-                  if(n=h) then
-                    n
-                  else
-                    vc_e Cast(n, h)
-          with Not_found -> raise (VC_Error ("classe non declaree : " ^ tc))
+          let rec cast_rec typeExpr =
+            try match (Hashtbl.find tabClasses typeExpr) with (hopt, _, _) ->
+              match hopt with
+                | None -> raise (VC_Error ("cast invalide car n'herite pas de : " ^ n))
+                | Some(h) ->
+                    if(n=h) then
+                      n
+                    else
+                      cast_rec h
+            with Not_found -> raise (VC_Error ("classe non declaree : " ^ typeExpr))
+          in cast_rec (vc_e e)
       | Membre(s1,s2) ->
           if (s1="This") then
             try match (Hashtbl.find tabClasses (Hashtbl.find tabVars "This")) with
@@ -133,11 +138,11 @@ let vc_expr expr tabVars tabClasses =
             with Not_found -> raise (VC_Error ("Super appele en dehors d'une classe ayant un parent !"))
           else raise (VC_Error ("impossible d'acceder a un champ externe (limite a This ou Super) : " ^ s1 ^ "." ^s2))
       | Instance(n,l) ->
-          methodeMembreGetType ("0_construct", l) n tabVars tabClasses
+          methodeMembreGetType n "0_construct" (vc_lExpr l tabVars tabClasses) tabVars tabClasses
       | MethodeExpr(e,s,l) ->
-          methodeMembreGetType e s l tabVars tabClasses
+          methodeMembreGetType (vc_e e) s (vc_lExpr l tabVars tabClasses) tabVars tabClasses
       | MethodeLocal(n,s,l) ->
-          vc_e MethodeExpr(Id(n),s,l)
+          methodeMembreGetType n s (vc_lExpr l tabVars tabClasses) tabVars tabClasses
       | Plus(e1,e2) | Moins(e1,e2) | Mult(e1,e2) | Div(e1,e2) ->
         exprEstInteger e1 ; exprEstInteger e2
       | Concat(e1,e2) ->
@@ -153,7 +158,7 @@ let vc_expr expr tabVars tabClasses =
   in vc_e e_rec
 
 (* retourne la liste des types des expressions *)
-let vc_lExpr lexpr tabVars tabClasses =
+and vc_lExpr lexpr tabVars tabClasses =
   let rec vc_le le_rec =
     match le_rec with
       | [] -> []
@@ -162,8 +167,8 @@ let vc_lExpr lexpr tabVars tabClasses =
 
 
 (* Ne retourne rien *)
-let vc_comp comp tabVars tabClasses
-  match comp with (e1,o,e2) -> vc_e e1 ; vc_e e2 ; ()
+let vc_comp comp tabVars tabClasses =
+  match comp with (e1,o,e2) -> vc_expr e1 tabVars tabClasses ; vc_expr e2 tabVars tabClasses ; ()
 
 (*
 (* retourne le tabVars actualise *)
