@@ -27,11 +27,8 @@ type expType =
 	|Concat of (expType * expType)
 	|MoinsU of expType
 
-<<<<<<< HEAD
-=======
 type compType = (expType * opType * expType)
 
->>>>>>> 629981a87b3a5775a3df62784976f19bb6befb19
 type declType = (string list * typeType)
 
 type cibleType = 
@@ -51,15 +48,6 @@ blocType = (declType list * instructionType list)
 
 type champsType = (bool * paramType)
 
-<<<<<<< HEAD
- type methodeType = {
-	nomMethode : string;
-	listParamMethode : paramType list;
-	isOverrideMethode : bool;
-	typeRetour : typeType option;
-	corpsMethode : blocType;
- }
-=======
 
 type methodeType = {
 nomMethode : string;
@@ -68,7 +56,6 @@ isOverrideMethode : bool;
 typeRetour : typeType option;
 corpsMethode : blocType;
 }
->>>>>>> 629981a87b3a5775a3df62784976f19bb6befb19
 
 type corpsType = (champsType list * methodeType list)
 
