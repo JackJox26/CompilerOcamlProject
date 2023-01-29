@@ -75,7 +75,7 @@ let methodeMembreGetType typeClasse nomMethode paramMethode tabVars tabClasses =
         with Not_found -> raise (VC_Error ("classe non declaree : " ^ c_rec))
       in mmgt_rec typeClasse
 
-
+(*
 (* retourne un tabVars avec les valeurs communes entre tabVars1 et tabVars2*)
 let communVars tabVars1 tabVars2 =
   let res = Hashtbl.create 50
@@ -87,22 +87,25 @@ let communVars tabVars1 tabVars2 =
             Hashtbl.add res nomVar1 typeVar1
       ) tabVars2
     ) tabVars1;
-    res
-
+    res*)
 
 
 (* retourne tabVars actualise avec le parametre ajoute comme une variable suplementaire *)
-let vc_param p tabVars tabClasses =
-  match p with
-    (s, t) -> Hashtbl.add tabVars s (classeGetType t tabClasses) ; tabVars
+let addVar paireVar tabVars tabClasses =
+  match paireVar with
+    (nomVar, typeVar) -> Hashtbl.add tabVars nomVar (classeGetType typeVar tabClasses) ; tabVars
 
 (* retourne tabVars actualise avec les parametres ajoutes comme des variables suplementaires *)
-let vc_lparam lpram tabVars tabClasses=
-  let rec vc_lp lp_rec tabVars_rec =
-    match lp_rec with
+let addLVar lPaireVar tabVars tabClasses=
+  let rec addLVar_rec lpv_rec tabVars_rec =
+    match lpv_rec with
       | [] -> tabVars_rec
-      | p::l -> vc_lp l (vc_param p tabVars_rec tabClasses)
-  in vc_lp lpram
+      | p::l -> addLVar_rec l (addVar p tabVars_rec tabClasses)
+  in addLVar_rec lPaireVar
+
+
+(* vc_param <-> addVar *)
+(* vc_lParam <-> addLVar *)
 
 
 (* retourne son type *)
@@ -174,11 +177,11 @@ and vc_lExpr lexpr tabVars tabClasses =
 let vc_comp comp tabVars tabClasses =
   match comp with (e1,o,e2) -> vc_expr e1 tabVars tabClasses ; vc_expr e2 tabVars tabClasses ; ()
 
+
+(* vc_declVar <-> addVar *)
+(* vc_lDeclVar <-> addLVar *)
+
 (*
-(* retourne le tabVars actualise *)
-let vc_declVar declVar (* TODO *)
-
-
 (* Ne retourne rien *)
 let vc_cible cible tabVars tabClasses =
   match cible with

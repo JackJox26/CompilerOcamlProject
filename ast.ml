@@ -1,10 +1,10 @@
 type opType = 
-    PGE
-    |PG
-    |PPE
-    |PP
-    |EGAL
-    |NEGAL
+	  PGE
+	| PG
+	| PPE
+	| PP
+	| EGAL
+	| NEGAL
 
 
 type typeType = string
@@ -14,20 +14,20 @@ type paramType = (string * typeType)
 
 
 type expType =
-	Id of string
-	|Cste of int
-	|Str of string
-	|Cast of (string * expType)
-	|Membre of (string * string)
-	|Instance of (string * expType list)
-	|MethodeExpr of (expType * string * expType list)
-	|MethodeLocal of (string * string * expType list)
-	|Plus of (expType * expType)
-	|Moins of (expType * expType)
-	|Mult of (expType * expType)
-	|Div of (expType * expType)
-	|Concat of (expType * expType)
-	|MoinsU of expType
+	  Id of string
+	| Cste of int
+	| Str of string
+	| Cast of (string * expType)
+	| Membre of (string * string)
+	| Instance of (string * expType list)
+	| MethodeExpr of (expType * string * expType list)
+	| MethodeLocal of (string * string * expType list)
+	| Plus of (expType * expType)
+	| Moins of (expType * expType)
+	| Mult of (expType * expType)
+	| Div of (expType * expType)
+	| Concat of (expType * expType)
+	| MoinsU of expType
 
 
 type compType = (expType * opType * expType)
@@ -37,13 +37,13 @@ type declType = (string list * typeType)
 
 
 type cibleType = 
-	Var of string 
+	  Var of string 
 	| MembreCible of (string * string)
 	| MembreCibleCast of (string * string * string)
 
 
 type instructionType = 
-	Exp of expType
+	  Exp of expType
 	| Bloc of blocType 
 	| IfThenElse of (compType*instructionType*instructionType)
 	| Return
@@ -57,11 +57,11 @@ type champsType = (bool * paramType)
 
 
 type methodeType = {
-nomMethode : string;
-listParamMethode : paramType list;
-isOverrideMethode : bool;
-typeRetour : typeType option;
-corpsMethode : blocType;
+	nomMethode : string;
+	listParamMethode : paramType list;
+	isOverrideMethode : bool;
+	typeRetour : typeType option;
+	corpsMethode : blocType;
 }
 
 type corpsType = (champsType list * methodeType list)
@@ -70,8 +70,8 @@ type corpsType = (champsType list * methodeType list)
 type heritageType = { nomHeritage : string; listArgsHeritage : expType list }
 
 
-type objetType = 
-{	nomObjet : string;
+type objetType = {
+	nomObjet : string;
 	isObjetIsole : bool;
 	listParamClasse : paramType list;
 	oHeritageClasse : heritageType option;
