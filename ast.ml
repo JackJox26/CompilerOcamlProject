@@ -1,12 +1,3 @@
-type opType = 
-	  PGE
-	| PG
-	| PPE
-	| PP
-	| EGAL
-	| NEGAL
-
-
 type typeType = string
 
 
@@ -30,22 +21,18 @@ type expType =
 	| MoinsU of expType
 
 
-type compType = (expType * opType * expType)
-
-
 type declType = (string list * typeType)
 
 
 type cibleType = 
 	  Var of string 
-	| MembreCible of (string * string)
-	| MembreCibleCast of (string * string * string)
+	| ChampCible of (string * string)
 
 
 type instructionType = 
 	  Exp of expType
 	| Bloc of blocType 
-	| IfThenElse of (compType*instructionType*instructionType)
+	| IfThenElse of (expType*instructionType*instructionType)
 	| Return
 	| Affectation of (cibleType * expType)
 

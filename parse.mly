@@ -4,7 +4,6 @@ open Ast
 %token <string> ID NOMCLASSE
 %token <int> CSTE
 %token <string> STR
-%token <Ast.opType> OPERATEUR
 %token PLUS MOINS MUL DIV
 %token PARENT_G PARENT_D
 %token ACCOLADE_G ACCOLADE_D
@@ -76,10 +75,6 @@ optLExpr:
 | l=lExpr                   { l }
 
 
-comp:
-  e1=expr o=OPERATEUR e2=expr                           { (e1,o,e2) }
-
-
 declVar:
   l=lIdent t=deType POINTVIRGULE                        { (l,t) }
 
@@ -88,16 +83,12 @@ lDeclVar:
 | d= declVar l= lDeclVar    { d::l }
 
 
-
 cible:
   s=ID                                                  { Var(s) }
-| s1=ID POINT s2=ID                                     { MembreCible(s1,s2) }
-| PARENT_G s1=ID PARENT_D POINT s2=ID                   { MembreCible(s1,s2) }
-| PARENT_G n=NOMCLASSE s1=ID PARENT_D POINT s2=ID       { MembreCibleCast(n,s1,s2) }
-   
+| e=expr POINT s=ID                                     { ChampCible(e,s) }
+| PARENT_G e=expr POINT s=ID PARENT_D                   { ChampCible(e,s) }
 
 
-     
 lIdent:
   s=ID                      { [s] }
 | s=ID VIRGULE l=lIdent     { s::l }
@@ -107,7 +98,7 @@ instruc:
   e=expr POINTVIRGULE                                   { Exp(e) }
 | b=bloc                                                { Bloc(b) }
 | RETURN POINTVIRGULE                                   { Return }
-| IF cmp=comp THEN i1=instruc ELSE i2=instruc           { IfThenElse(cmp,i1,i2) }
+| IF e=expr THEN i1=instruc ELSE i2=instruc             { IfThenElse(e,i1,i2) }
 | c=cible AFFECT e= expr                                { Affectation(c,e) }
 
 lInstruc:
