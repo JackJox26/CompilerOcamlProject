@@ -121,7 +121,7 @@ optLInstruc:
 
 bloc:
   ACCOLADE_G o=optLInstruc ACCOLADE_D                                       { ([],o) }
-| ACCOLADE_G ld=lDeclVar POINTVIRGULE IS li=lInstruc ACCOLADE_D             { (ld,li) }
+| ACCOLADE_G ld=lDeclVar IS li=lInstruc ACCOLADE_D      { (ld,li) }
 
 
 champ:
@@ -133,8 +133,8 @@ lChamp:
 
 
 methode:
-  DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D t=deType AFFECT e=expr      { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=Some(t) ; corpsMethode=([],[Exp(e)])} }
-| DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D ot=option(deType) IS b=bloc  { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=ot ; corpsMethode=b} }
+  DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D t=deType AFFECT e=expr                  { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=Some(t) ; corpsMethode=([],[Exp(e)])} }
+| DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D ot=option(deType) IS b=bloc             { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=ot ; corpsMethode=b} }
 
 lMethode:
                             { [] }
@@ -146,16 +146,16 @@ corpsObjet:
 
 
 heritage:
-  EXTENDS n=NOMCLASSE PARENT_G l=optLExpr PARENT_D            { { nomHeritage=n ; listArgsHeritage=l } }
+  EXTENDS n=NOMCLASSE PARENT_G l=optLExpr PARENT_D      { { nomHeritage=n ; listArgsHeritage=l } }
  
 
 objet:
-  CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet         { { nomObjet=n ; isObjetIsole=false ; listParamClasse=l ; oHeritageClasse=h ; oConstructObjet=b ; corpsObjet=c  } }
-| OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet                                                          { { nomObjet=n ; isObjetIsole=true ; listParamClasse=[] ; oHeritageClasse=None ; oConstructObjet=b ; corpsObjet=c } }
+  CLASS n=NOMCLASSE PARENT_G l=optLParam PARENT_D  h=option(heritage) b=option(bloc) c=corpsObjet     { { nomObjet=n ; isObjetIsole=false ; listParamClasse=l ; oHeritageClasse=h ; oConstructObjet=b ; corpsObjet=c  } }
+| OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet                                                      { { nomObjet=n ; isObjetIsole=true ; listParamClasse=[] ; oHeritageClasse=None ; oConstructObjet=b ; corpsObjet=c } }
 
 lObjets:
                             { [] }
-| o=objet l=lObjets          { o::l }
+| o=objet l=lObjets         { o::l }
 
 
 prog:
