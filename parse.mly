@@ -17,7 +17,6 @@ open Ast
 %token EOF
 
 %right AFFECT
-%nonassoc OPERATEUR
 %left PLUS MOINS CONCAT
 %left MUL DIV
 %left UNITAIRE
@@ -86,7 +85,7 @@ lDeclVar:
 cible:
   s=ID                                                  { Var(s) }
 | e=expr POINT s=ID                                     { ChampCible(e,s) }
-| PARENT_G e=expr POINT s=ID PARENT_D                   { ChampCible(e,s) }
+| PARENT_G c=cible PARENT_D                             { c }
 
 
 lIdent:
@@ -95,7 +94,7 @@ lIdent:
 
 
 instruc:
-  e=expr POINTVIRGULE                                   { Exp(e) }
+  e=expr POINTVIRGULE                                   { Expr(e) }
 | b=bloc                                                { Bloc(b) }
 | RETURN POINTVIRGULE                                   { Return }
 | IF e=expr THEN i1=instruc ELSE i2=instruc             { IfThenElse(e,i1,i2) }
@@ -111,7 +110,7 @@ optLInstruc:
 
 
 bloc:
-  ACCOLADE_G o=optLInstruc ACCOLADE_D                                       { ([],o) }
+  ACCOLADE_G o=optLInstruc ACCOLADE_D                   { ([],o) }
 | ACCOLADE_G ld=lDeclVar IS li=lInstruc ACCOLADE_D      { (ld,li) }
 
 
@@ -124,7 +123,7 @@ lChamp:
 
 
 methode:
-  DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D t=deType AFFECT e=expr                  { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=Some(t) ; corpsMethode=([],[Exp(e)])} }
+  DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D t=deType AFFECT e=expr                  { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=Some(t) ; corpsMethode=([],[Expr(e)])} }
 | DEF o=boption(OVERRIDE) s=ID PARENT_G lp=optLParam PARENT_D ot=option(deType) IS b=bloc             { { nomMethode=s ; listParamMethode=lp ; isOverrideMethode=o ; typeRetour=ot ; corpsMethode=b} }
 
 lMethode:
