@@ -1,16 +1,18 @@
 open Ast
 
-(*nomVar : typeVar*)
-type tabVars = (string, string) Hashtbl.t
-(*dont this du type de la classe courante
-  dont super du type du parent de la classe courante*)
+(*
+    (*nomVar : typeVar*)
+    type tabVars = (string, string) Hashtbl.t
+    (*dont this du type de la classe courante
+      dont super du type du parent de la classe courante*)
 
-(*nomMethode : lParamType, typeRetour*)
-type tabMethodes = (string, string list * string) Hashtbl.t
-(*dont methode 0_construct qui correspond  aux constructeurs de la classe*)
+    (*nomMethode : lParamType, typeRetour*)
+    type tabMethodes = (string, string list * string) Hashtbl.t
+    (*dont methode 0_construct qui correspond  aux constructeurs de la classe*)
 
-(*nomClasse : (heritageClasseParente, tabMethodesMembres, tabChamps)*)
-type tabClasses = (string, (string option * tabMethodes * tabVars)) Hashtbl.t
+    (*nomClasse : (heritageClasseParente, tabMethodesMembres, tabChamps)*)
+    type tabClasses = (string, (string option * tabMethodes * tabVars)) Hashtbl.t
+*)
 
 exception Not_here
 
