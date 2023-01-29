@@ -6,11 +6,11 @@ type tabVars = (string, typeType) t                                     -> nomVa
 
 type tabClasses = (string, (string option * tabMethodes * tabVars)) t   -> nomClasse : (heritageClasseParente, tabMethodesMembres, tabChamps)
 
-type signatureMethode = (string * typeType list)                        -> (nomMethode, lParamType)
-
-type tabMethodes = (signatureMethode, typeType) t                       -> signatureMethode : typeRetour
+type tabMethodes = (string, typeType list * typeType) t                 -> nomMethode : lParamType, typeRetour
   dont methode 0_construct qui correspond  aux constructeurs de la classe
 *)
+
+exception Not_here
 
 (* retourne le type de s *)
 let classeGetType n tabClasses =
@@ -29,17 +29,42 @@ let variableDeclare s tabVars = variableGetType s tabVars ; ()
 
 
 (* retourne le type de retour de la methode *)
-let methodeMembreGetType signatureMethode typeClasse tabVars tabClasses
-  let rec mmgt_rec c_rec =
-    try match (Hashtbl.find tabClasses c_rec) with
-      | (herit, tab_m, _) ->
-          try (Hashtbl.find tab_m signatureMethode)
-          with Not_found ->
-            match herit with
-              | Some(h) -> mmgt_rec h
-              | None -> raise (VC_Error ("pas de methode avec cette signature, dans la classe : " ^ typeClasse ^ " (ni dans ces classes heritees jusqu'a : " ^ h ^ ")"))
-    with Not_found -> raise (VC_Error ("classe non declaree : " ^ c_rec))
-  in mmgt_rec type_c
+let methodeMembreGetType typeClasse nomMethode paramMethode tabVars tabClasses
+  let matchParam paramAttendus paramFournits =
+    match paramFournits with
+      | [] -> if(paramAttendus=[]) then True else False
+      | f::rf ->
+          match paramAttendus with
+            | [] -> False
+            | a::ra ->
+                if(f=a) then
+                  matchParam ra rf
+                else
+                  try match (Hashtbl.find tabClasses f) with
+                      | (h_paramFournit, _, _) -> matchParam paramAttendus (h_paramFournit::rf)
+                  with Not_found -> False
+  in
+    let matchSignatureGetType lposibilites =
+      match lposibilites with
+      | [] -> raise (Not_here)
+      | posib::r ->
+          match posib with (parmPosib, resPosib)
+            if (matchParam parmPosib paramMethode) then
+              resPosib
+            else
+              matchSignatureGetType r
+    in
+      let rec mmgt_rec c_rec =
+        try match (Hashtbl.find tabClasses c_rec) with
+          | (herit, tab_m, _) ->
+              try  (Hashtbl.find_all tab_m nomMethode)
+              with
+                Not_found | Not_here ->
+                  match herit with
+                    | Some(h) -> mmgt_rec h
+                    | None -> raise (VC_Error ("pas de methode avec cette signature, dans la classe : " ^ typeClasse ^ " (ni dans ces classes heritees jusqu'a : " ^ h ^ ")"))
+        with Not_found -> raise (VC_Error ("classe non declaree : " ^ c_rec))
+      in mmgt_rec type_c
 
 
 (* retourne un tabVars avec les valeurs communes entre tabVars1 et tabVars2*)
@@ -110,7 +135,7 @@ let vc_expr expr tabVars tabClasses =
       | Instance(n,l) ->
           methodeMembreGetType ("0_construct", l) n tabVars tabClasses
       | MethodeExpr(e,s,l) ->
-          methodeMembreGetType (s, l) e tabVars tabClasses
+          methodeMembreGetType e s l tabVars tabClasses
       | MethodeLocal(n,s,l) ->
           vc_e MethodeExpr(Id(n),s,l)
       | Plus(e1,e2) | Moins(e1,e2) | Mult(e1,e2) | Div(e1,e2) ->
@@ -140,10 +165,10 @@ let vc_lExpr lexpr tabVars tabClasses =
 let vc_comp comp tabVars tabClasses
   match comp with (e1,o,e2) -> vc_e e1 ; vc_e e2 ; ()
 
-
+(*
 (* retourne le tabVars actualise *)
 let vc_declVar declVar (* TODO *)
-
+*)
 
 (* Ne retourne rien *)
 let vc_cible cible tabVars tabClasses =
@@ -164,9 +189,10 @@ let vc_instruc instruc tabVars tabClasses =
       | Affectation(c, e) -> vc_cible c tabVars tabClasses ; vc_expr e tabVars tabClasses ; ()
   in vc_i instruc
 
-
+(*
 (* Ne retourne rien *)
 let vc_bloc bloc (* TODO *)
+*)
 
 (* Ne retourne rien *)
 let vc_prog prog =
@@ -174,9 +200,9 @@ let vc_prog prog =
   let tabMethodesInt = Hashtbl.create 1 in
   let tabMethodesStr = Hashtbl.create 2
   in
-    Hashtbl.add tabMethodesInt ("toString", []) "String";
-    Hashtbl.add tabMethodesStr ("print", []) "Void";
-    Hashtbl.add tabMethodesStr ("println", []) "Void";
+    Hashtbl.add tabMethodesInt "toString" ([], "String");
+    Hashtbl.add tabMethodesStr "print" ([], "Void");
+    Hashtbl.add tabMethodesStr "println" ([], "Void");
     Hashtbl.add tabClasses ("Integer", None, tabMethodesInt);
     Hashtbl.add tabClasses ("String", None, tabMethodesStr);
     match prog with (l,b) -> vc_bloc b (vc_lobjets l tabClasses)
