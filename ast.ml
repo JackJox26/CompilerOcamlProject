@@ -50,17 +50,16 @@ type methodeType = {
 	corpsMethode : blocType;
 }
 
+
 type corpsType = (champType list * methodeType list)
-
-
-type heritageType = { nomHeritage : typeType; listArgsHeritage : exprType list }
 
 
 type objetType = {
 	nomObjet : string;
-	isObjetIsole : bool;
+	estClasse : bool;
 	listParamClasse : paramType list;
-	oHeritageClasse : heritageType option;
+	oNomHeritage : typeType option;
+	listArgsHeritage : exprType list;
 	oConstructObjet : blocType option;
 	corpsObjet : corpsType
 }

@@ -21,16 +21,6 @@ exception Not_here
 
 
 
-(* retourne le type de la classe (i.e. elle-meme) *)
-let classeGetType nomObjet tabObjets =
-  let tabMethodes =
-    try (match Hashtbl.find tabObjets nomObjet with (_, tab_m, _) -> tab_m)
-    with Not_found -> raise (VC_Error ("classe non declaree : " ^ nomObjet))
-  in
-    try (Hashtbl.find tabMethodes "0_construct") ; nomObjet
-    with Not_found -> raise (VC_Error ("n'est pas un type car c'est un objet isole : " ^ nomObjet))
-
-
 (* retourne le type de la variable *)
 let variableGetType nomVar tabVars =
   try (Hashtbl.find tabVars nomVar)
@@ -113,10 +103,20 @@ let communVars tabVars1 tabVars2 =
     res*)
 
 
+(* retourne le type de la classe (i.e. elle-meme) *)
+let vc_type nomObjet tabObjets =
+  let tabMethodes =
+    try (match Hashtbl.find tabObjets nomObjet with (_, tab_m, _) -> tab_m)
+    with Not_found -> raise (VC_Error ("classe non declaree : " ^ nomObjet))
+  in
+    try (Hashtbl.find tabMethodes "0_construct") ; nomObjet
+    with Not_found -> raise (VC_Error ("n'est pas un type car c'est un objet isole : " ^ nomObjet))
+
+
 (* retourne tabVars actualise avec le parametre ajoute comme une variable suplementaire *)
 let addVar paireVar tabVars tabObjets =
   match paireVar with
-    (nomVar, typeVar) -> Hashtbl.add tabVars nomVar (classeGetType typeVar tabObjets) ; tabVars
+    (nomVar, typeVar) -> Hashtbl.add tabVars nomVar (vc_type typeVar tabObjets) ; tabVars
 
 
 (* retourne tabVars actualise avec les parametres ajoutes comme des variables suplementaires *)
@@ -130,59 +130,61 @@ let vc_lParam lParam tabVars tabObjets=
 
 (* retourne son type *)
 let rec vc_expr expr tabVars tabObjets =
-  let rec exprEstInteger e =
-    let typeExpr = vc_e e
-    in
-      if (typeExpr="Integer") then "Integer"
-      else raise (VC_Error ("type incorecte pour operation numerique : " ^ typeExpr))
-  and vc_e e_rec =
-    match e_rec with
-      | Id s -> variableGetType s tabVars
-      | Cste v -> "Integer"
-      | Str s -> "String"
-      | Cast (n, e) ->
-          let rec cast_rec typeExpr =
-            try match (Hashtbl.find tabObjets typeExpr) with (hopt, _, _) ->
-              match hopt with
-                | None -> raise (VC_Error ("cast invalide car n'herite pas de : " ^ n))
-                | Some(h) ->
-                    if(n=h) then
-                      n
-                    else
-                      cast_rec h
-            with Not_found -> raise (VC_Error ("classe non declaree : " ^ typeExpr))
-          in cast_rec (vc_e e)
-      | Membre(s1,s2) ->
-          if (s1="This") then
-            try match (Hashtbl.find tabObjets (Hashtbl.find tabVars "This")) with
-              |  (_, _, tabChamps) ->
-                  try (Hashtbl.find tabVars s2)
-                  with Not_found -> raise (VC_Error ("L'objet n'a pas d'attribut : " ^ s2))
-            with Not_found -> raise (VC_Error ("This appele en dehors d'un objet !"))
-          else if (s1="Super") then
-            try match (Hashtbl.find tabObjets (Hashtbl.find tabVars "Super")) with
-              |  (_, _, tabChamps) ->
-                  try (Hashtbl.find tabVars s2)
-                  with Not_found -> raise (VC_Error ("La classe n'a pas d'attribut : " ^ s2))
-            with Not_found -> raise (VC_Error ("Super appele en dehors d'une classe ayant un parent !"))
-          else raise (VC_Error ("impossible d'acceder a un champ externe (limite a This ou Super) : " ^ s1 ^ "." ^s2))
-      | Instance(n,l) ->
-          methodeMembreGetType n "0_construct" (vc_lExpr l tabVars tabObjets) tabObjets
-      | MethodeExpr(e,s,l) ->
-          methodeMembreGetType (vc_e e) s (vc_lExpr l tabVars tabObjets) tabObjets
-      | MethodeLocal(n,s,l) ->
-          methodeMembreGetType n s (vc_lExpr l tabVars tabObjets) tabObjets
-      | Plus(e1,e2) | Moins(e1,e2) | Mult(e1,e2) | Div(e1,e2) ->
-          exprEstInteger e1 ; exprEstInteger e2
-      | Concat(e1,e2) ->
-          let type1 = vc_e e1 in
-          let type2 = vc_e e2
-          in
-            if ((type1="String") && (type2="String")) then "String"
-            else raise (VC_Error ("type incorecte pour la concatenation : Concat(" ^ type1 ^ ", " ^ type2 ^")"))
-      | MoinsU(e) ->
-          exprEstInteger e
-  in vc_e expr
+  let typeRes =
+    let rec exprEstInteger e =
+      let typeExpr = vc_e e
+      in
+        if (typeExpr="Integer") then "Integer"
+        else raise (VC_Error ("type incorecte pour operation numerique : " ^ typeExpr))
+    and vc_e e_rec =
+      match e_rec with
+        | Id s -> variableGetType s tabVars
+        | Cste v -> "Integer"
+        | Str s -> "String"
+        | Cast (n, e) ->
+            let rec cast_rec typeExpr =
+              try match (Hashtbl.find tabObjets typeExpr) with (hopt, _, _) ->
+                match hopt with
+                  | None -> raise (VC_Error ("cast invalide car n'herite pas de : " ^ n))
+                  | Some(h) ->
+                      if(n=h) then
+                        n
+                      else
+                        cast_rec h
+              with Not_found -> raise (VC_Error ("classe non declaree : " ^ typeExpr))
+            in cast_rec (vc_e e)
+        | Membre(s1,s2) ->
+            if (s1="This") then
+              try match (Hashtbl.find tabObjets (Hashtbl.find tabVars "This")) with
+                |  (_, _, tabChamps) ->
+                    try (Hashtbl.find tabVars s2)
+                    with Not_found -> raise (VC_Error ("L'objet n'a pas d'attribut : " ^ s2))
+              with Not_found -> raise (VC_Error ("This appele en dehors d'un objet !"))
+            else if (s1="Super") then
+              try match (Hashtbl.find tabObjets (Hashtbl.find tabVars "Super")) with
+                |  (_, _, tabChamps) ->
+                    try (Hashtbl.find tabVars s2)
+                    with Not_found -> raise (VC_Error ("La classe n'a pas d'attribut : " ^ s2))
+              with Not_found -> raise (VC_Error ("Super appele en dehors d'une classe ayant un parent !"))
+            else raise (VC_Error ("impossible d'acceder a un champ externe (limite a This ou Super) : " ^ s1 ^ "." ^s2))
+        | Instance(n,l) ->
+            methodeMembreGetType n "0_construct" (vc_lExpr l tabVars tabObjets) tabObjets
+        | MethodeExpr(e,s,l) ->
+            methodeMembreGetType (vc_e e) s (vc_lExpr l tabVars tabObjets) tabObjets
+        | MethodeLocal(n,s,l) ->
+            methodeMembreGetType n s (vc_lExpr l tabVars tabObjets) tabObjets
+        | Plus(e1,e2) | Moins(e1,e2) | Mult(e1,e2) | Div(e1,e2) ->
+            exprEstInteger e1 ; exprEstInteger e2
+        | Concat(e1,e2) ->
+            let type1 = vc_e e1 in
+            let type2 = vc_e e2
+            in
+              if ((type1="String") && (type2="String")) then "String"
+              else raise (VC_Error ("type incorecte pour la concatenation : Concat(" ^ type1 ^ ", " ^ type2 ^")"))
+        | MoinsU(e) ->
+            exprEstInteger e
+    in vc_e expr
+  in vc_type typeRes tabObjets
 
 (* retourne la liste des types des expressions *)
 and vc_lExpr lexpr tabVars tabObjets =
@@ -304,14 +306,34 @@ let vc_corpsObjet corpsObjet tabVars tabObjets =
     vc_lMethode lm tabVars (vc_lChamp lc tabVars tabObjets)
 
 
-(* ne retourne rien *)
-let vc_heritage heritage tabVars tabObjets =
-  methodeMembreGetType heritage.nomHeritage "0_construct" (vc_lExpr heritage.listArgsHeritage tabVars tabObjets) tabObjets
-
-
 (* retourne tabObjets actualise *)
 let vc_objet objet tabObjets =
-  tabObjets (*TODO verif que le typeHeritage est une classe cree un tabVars avec this et eventuellement super et vc du corps ajouter l'objet varObjet distinction classe/objIsolee par la presence ou non d'un constructeur *)
+  try (Hashtbl.find tabObjets objet.nomObjet) ; raise (VC_Error ("le nom d'un objet ne peut pas etre reutilise : " ^ objet.nomObjet))
+  with Not_found ->
+    let tabVars = vc_lParam objet.listParamClasse (Hashtbl.create 20) tabObjets in
+    let tabMethodes = Hashtbl.create 20
+    in
+      Hashtbl.add tabVars "this" objet.nomObjet ;
+      begin
+        if(objet.estClasse) then
+          begin
+            match objet.oNomHeritage with
+              | None -> ()
+              | Some(h) -> 
+                begin 
+                  (if(methodeMembreExists h "0_construct" (vc_lExpr objet.listArgsHeritage tabVars tabObjets) tabObjets) then ()
+                  else raise (VC_Error ("impossible d'herite de l'objet avec ces arguments de construction : " ^ h))) ;
+                  Hashtbl.add tabVars "super" h
+                end
+          end ;
+          Hashtbl.add tabMethodes "0_construct" ((List.map (fun (_, t) -> t) objet.listParamClasse), objet.nomObjet)
+      end ;
+      Hashtbl.add tabObjets objet.nomObjet (objet.oNomHeritage, tabMethodes, Hashtbl.create 20) ;
+      let nouv_tabObjets = vc_corpsObjet objet.corpsObjet tabVars tabObjets
+      in
+        match objet.oConstructObjet with
+        | None -> nouv_tabObjets
+        | Some(constructObjet) -> vc_bloc constructObjet tabVars nouv_tabObjets ; nouv_tabObjets
 
 (* retourne tabObjets actualise *)
 let vc_lobjets lObjet tabObjets =
@@ -321,9 +343,10 @@ let vc_lobjets lObjet tabObjets =
       | o::l -> vc_lo l (vc_objet o tabObjets_rec)
   in vc_lo lObjet tabObjets
 
+
 (* ne retourne rien *)
 let vc_prog prog =
-  let tabObjets = Hashtbl.create 10 in 
+  let tabObjets = Hashtbl.create 10 in
   let tabMethodesInt = Hashtbl.create 1 in
   let tabMethodesStr = Hashtbl.create 2
   in
