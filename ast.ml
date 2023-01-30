@@ -1,36 +1,24 @@
-type opType = 
-	  PGE
-	| PG
-	| PPE
-	| PP
-	| EGAL
-	| NEGAL
-
-
 type typeType = string
 
 
 type paramType = (string * typeType)
 
 
-type expType =
+type exprType =
 	  Id of string
 	| Cste of int
 	| Str of string
-	| Cast of (string * expType)
+	| Cast of (string * exprType)
 	| Membre of (string * string)
-	| Instance of (string * expType list)
-	| MethodeExpr of (expType * string * expType list)
-	| MethodeLocal of (string * string * expType list)
-	| Plus of (expType * expType)
-	| Moins of (expType * expType)
-	| Mult of (expType * expType)
-	| Div of (expType * expType)
-	| Concat of (expType * expType)
-	| MoinsU of expType
-
-
-type compType = (expType * opType * expType)
+	| Instance of (string * exprType list)
+	| MethodeExpr of (exprType * string * exprType list)
+	| MethodeLocal of (string * string * exprType list)
+	| Plus of (exprType * exprType)
+	| Moins of (exprType * exprType)
+	| Mult of (exprType * exprType)
+	| Div of (exprType * exprType)
+	| Concat of (exprType * exprType)
+	| MoinsU of exprType
 
 
 type declType = (string list * typeType)
@@ -38,22 +26,20 @@ type declType = (string list * typeType)
 
 type cibleType = 
 	  Var of string 
-	| MembreCible of (string * string)
-	| MembreCibleCast of (string * string * string)
+	| ChampCible of (exprType * string)
 
 
 type instructionType = 
-	  Exp of expType
+	  Expr of exprType
 	| Bloc of blocType 
-	| IfThenElse of (compType*instructionType*instructionType)
+	| IfThenElse of (exprType*instructionType*instructionType)
 	| Return
-	| Affectation of (cibleType * expType)
+	| Affectation of (cibleType * exprType)
 
-and
-blocType = (declType list * instructionType list)
+and blocType = (declType list * instructionType list)
 
 
-type champsType = (bool * paramType)
+type champType = (bool * paramType)
 
 
 type methodeType = {
@@ -64,10 +50,10 @@ type methodeType = {
 	corpsMethode : blocType;
 }
 
-type corpsType = (champsType list * methodeType list)
+type corpsType = (champType list * methodeType list)
 
 
-type heritageType = { nomHeritage : string; listArgsHeritage : expType list }
+type heritageType = { nomHeritage : typeType; listArgsHeritage : exprType list }
 
 
 type objetType = {
