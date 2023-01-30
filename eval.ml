@@ -13,8 +13,8 @@ open Ast
     type tabMethodes = (string, string list * typeType) Hashtbl.t
     (*dont methode 0_construct qui correspond  aux constructeurs de la classe*)
 
-    (*nomClasse : (heritageClasseParente, tabMethodesMembres, tabChamps)*)
-    type tabClasses = (string, (typeType option * tabMethodes * tabVars)) Hashtbl.t
+    (*nomObjet : (heritageClasseParente, tabMethodesMembres, tabChamps)*)
+    type tabObjets = (string, (typeType option * tabMethodes * tabVars)) Hashtbl.t
 *)
 
 exception Not_here
@@ -22,9 +22,13 @@ exception Not_here
 
 
 (* retourne le type de la classe (i.e. elle-meme) *)
-let classeGetType nomClasse tabClasses =
-  try (Hashtbl.find tabClasses nomClasse ; nomClasse)
-  with Not_found -> raise (VC_Error ("classe non declaree : " ^ nomClasse))
+let classeGetType nomObjet tabObjets =
+  let tabMethodes =
+    try (match Hashtbl.find tabObjets nomObjet with (_, tab_m, _) -> tab_m)
+    with Not_found -> raise (VC_Error ("classe non declaree : " ^ nomObjet))
+  in
+    try (Hashtbl.find tabMethodes "0_construct") ; nomObjet
+    with Not_found -> raise (VC_Error ("n'est pas un type car c'est un objet isole : " ^ nomObjet))
 
 
 (* retourne le type de la variable *)
@@ -34,7 +38,7 @@ let variableGetType nomVar tabVars =
 
 
 (* retourne le type de retour de la methode *)
-let methodeMembreGetType typeClasse nomMethode paramMethode tabClasses =
+let methodeMembreGetType nomObjet nomMethode paramMethode tabObjets =
   let rec matchParam paramAttendus paramFournits =
     match paramFournits with
       | [] -> if(paramAttendus=[]) then true else false
@@ -45,7 +49,7 @@ let methodeMembreGetType typeClasse nomMethode paramMethode tabClasses =
                 if(f=a) then
                   matchParam ra rf
                 else
-                  try match (Hashtbl.find tabClasses f) with
+                  try match (Hashtbl.find tabObjets f) with
                       | (hopt_paramFournit, _, _) -> 
                           match hopt_paramFournit with
                             | Some(h_paramFournit) -> matchParam paramAttendus (h_paramFournit::rf)
@@ -63,36 +67,36 @@ let methodeMembreGetType typeClasse nomMethode paramMethode tabClasses =
               matchSignatureGetType r
     in
       let rec mmgt_rec c_rec =
-        try match (Hashtbl.find tabClasses c_rec) with
+        try match (Hashtbl.find tabObjets c_rec) with
           | (hopt, tab_m, _) ->
               try matchSignatureGetType (Hashtbl.find_all tab_m nomMethode)
               with
                 Not_found | Not_here ->
                   match hopt with
                     | Some(h) -> mmgt_rec h
-                    | None -> raise (VC_Error ("pas de methode avec cette signature, dans la classe : " ^ typeClasse ^ if(typeClasse!=c_rec) then (" (ni dans ces classes heritees jusqu'a : " ^ c_rec ^ ")") else ""))
-        with Not_found -> raise (VC_Error ("classe non declaree : " ^ c_rec))
-      in mmgt_rec typeClasse
+                    | None -> raise (VC_Error ("pas de methode avec cette signature, dans l'objet' : " ^ nomObjet ^ if(nomObjet!=c_rec) then (" (ni dans ces classes heritees jusqu'a : " ^ c_rec ^ ")") else ""))
+        with Not_found -> raise (VC_Error ("objet non declaree : " ^ c_rec))
+      in mmgt_rec nomObjet
 
 (* retourne false s'il n'existe pas de methode avec cette signature *)
-let methodeMembreExists typeClasse nomMethode paramMethode tabClasses =
-  try (methodeMembreGetType typeClasse nomMethode paramMethode tabClasses ; true)
+let methodeMembreExists nomObjet nomMethode paramMethode tabObjets =
+  try (methodeMembreGetType nomObjet nomMethode paramMethode tabObjets ; true)
   with VC_Error(_) -> false
 
 
 (* retourne le type du champ *)
-let champMembreGetType typeClasse nomChamp tabClasses =
+let champMembreGetType nomObjet nomChamp tabObjets =
   let rec cmgt_rec c_rec =
-    try match (Hashtbl.find tabClasses c_rec) with
+    try match (Hashtbl.find tabObjets c_rec) with
       | (hopt, _, tab_c) ->
           try (Hashtbl.find tab_c nomChamp)
           with
             Not_found | Not_here ->
               match hopt with
                 | Some(h) -> cmgt_rec h
-                | None -> raise (VC_Error ("pas de champ avec ce nom, dans la classe : " ^ typeClasse ^ if(typeClasse!=c_rec) then (" (ni dans ces classes heritees jusqu'a : " ^ c_rec ^ ")") else ""))
-    with Not_found -> raise (VC_Error ("classe non declaree : " ^ c_rec))
-  in cmgt_rec typeClasse
+                | None -> raise (VC_Error ("pas de champ avec ce nom, dans l'objet' : " ^ nomObjet ^ if(nomObjet!=c_rec) then (" (ni dans ces classes heritees jusqu'a : " ^ c_rec ^ ")") else ""))
+    with Not_found -> raise (VC_Error ("objet non declaree : " ^ c_rec))
+  in cmgt_rec nomObjet
 
 (*
 (* retourne un tabVars avec les valeurs communes entre tabVars1 et tabVars2*)
@@ -110,22 +114,22 @@ let communVars tabVars1 tabVars2 =
 
 
 (* retourne tabVars actualise avec le parametre ajoute comme une variable suplementaire *)
-let addVar paireVar tabVars tabClasses =
+let addVar paireVar tabVars tabObjets =
   match paireVar with
-    (nomVar, typeVar) -> Hashtbl.add tabVars nomVar (classeGetType typeVar tabClasses) ; tabVars
+    (nomVar, typeVar) -> Hashtbl.add tabVars nomVar (classeGetType typeVar tabObjets) ; tabVars
 
 
 (* retourne tabVars actualise avec les parametres ajoutes comme des variables suplementaires *)
-let vc_lParam lParam tabVars tabClasses=
+let vc_lParam lParam tabVars tabObjets=
   let rec vc_lp lp tabVars_rec =
     match lp with
       | [] -> tabVars_rec
-      | p::l -> vc_lp l (addVar p tabVars_rec tabClasses)
+      | p::l -> vc_lp l (addVar p tabVars_rec tabObjets)
   in vc_lp lParam tabVars
 
 
 (* retourne son type *)
-let rec vc_expr expr tabVars tabClasses =
+let rec vc_expr expr tabVars tabObjets =
   let rec exprEstInteger e =
     let typeExpr = vc_e e
     in
@@ -138,7 +142,7 @@ let rec vc_expr expr tabVars tabClasses =
       | Str s -> "String"
       | Cast (n, e) ->
           let rec cast_rec typeExpr =
-            try match (Hashtbl.find tabClasses typeExpr) with (hopt, _, _) ->
+            try match (Hashtbl.find tabObjets typeExpr) with (hopt, _, _) ->
               match hopt with
                 | None -> raise (VC_Error ("cast invalide car n'herite pas de : " ^ n))
                 | Some(h) ->
@@ -150,24 +154,24 @@ let rec vc_expr expr tabVars tabClasses =
           in cast_rec (vc_e e)
       | Membre(s1,s2) ->
           if (s1="This") then
-            try match (Hashtbl.find tabClasses (Hashtbl.find tabVars "This")) with
+            try match (Hashtbl.find tabObjets (Hashtbl.find tabVars "This")) with
               |  (_, _, tabChamps) ->
                   try (Hashtbl.find tabVars s2)
-                  with Not_found -> raise (VC_Error ("La classe n'a pas d'attribut : " ^ s2))
-            with Not_found -> raise (VC_Error ("This appele en dehors d'une classe !"))
+                  with Not_found -> raise (VC_Error ("L'objet n'a pas d'attribut : " ^ s2))
+            with Not_found -> raise (VC_Error ("This appele en dehors d'un objet !"))
           else if (s1="Super") then
-            try match (Hashtbl.find tabClasses (Hashtbl.find tabVars "Super")) with
+            try match (Hashtbl.find tabObjets (Hashtbl.find tabVars "Super")) with
               |  (_, _, tabChamps) ->
                   try (Hashtbl.find tabVars s2)
                   with Not_found -> raise (VC_Error ("La classe n'a pas d'attribut : " ^ s2))
             with Not_found -> raise (VC_Error ("Super appele en dehors d'une classe ayant un parent !"))
           else raise (VC_Error ("impossible d'acceder a un champ externe (limite a This ou Super) : " ^ s1 ^ "." ^s2))
       | Instance(n,l) ->
-          methodeMembreGetType n "0_construct" (vc_lExpr l tabVars tabClasses) tabClasses
+          methodeMembreGetType n "0_construct" (vc_lExpr l tabVars tabObjets) tabObjets
       | MethodeExpr(e,s,l) ->
-          methodeMembreGetType (vc_e e) s (vc_lExpr l tabVars tabClasses) tabClasses
+          methodeMembreGetType (vc_e e) s (vc_lExpr l tabVars tabObjets) tabObjets
       | MethodeLocal(n,s,l) ->
-          methodeMembreGetType n s (vc_lExpr l tabVars tabClasses) tabClasses
+          methodeMembreGetType n s (vc_lExpr l tabVars tabObjets) tabObjets
       | Plus(e1,e2) | Moins(e1,e2) | Mult(e1,e2) | Div(e1,e2) ->
           exprEstInteger e1 ; exprEstInteger e2
       | Concat(e1,e2) ->
@@ -181,21 +185,21 @@ let rec vc_expr expr tabVars tabClasses =
   in vc_e expr
 
 (* retourne la liste des types des expressions *)
-and vc_lExpr lexpr tabVars tabClasses =
+and vc_lExpr lexpr tabVars tabObjets =
   let rec vc_le le_rec =
     match le_rec with
       | [] -> []
-      | e::l -> (vc_expr e tabVars tabClasses)::(vc_le l)
+      | e::l -> (vc_expr e tabVars tabObjets)::(vc_le l)
   in vc_le lexpr
 
 
 (* ne retourne rien *)
-let vc_comp comp tabVars tabClasses =
-  match comp with (e1,o,e2) -> vc_expr e1 tabVars tabClasses ; vc_expr e2 tabVars tabClasses ; ()
+let vc_comp comp tabVars tabObjets =
+  match comp with (e1,o,e2) -> vc_expr e1 tabVars tabObjets ; vc_expr e2 tabVars tabObjets ; ()
 
 
 (* retourne tabVars actualise avec les variables declarees ajoutees comme des variables suplementaires *)
-let vc_lDecl lDecl tabVars tabClasses=
+let vc_lDecl lDecl tabVars tabObjets=
   let rec vc_ld ld tabVars_rec1 =
     match ld with
       | [] -> tabVars_rec1
@@ -204,110 +208,122 @@ let vc_lDecl lDecl tabVars tabClasses=
             let rec vc_lv lv tabVars_rec2 =
               match lv with
                 | [] -> tabVars_rec2
-                | v::rv -> vc_lv rv (addVar (v,t) tabVars_rec2 tabClasses)
+                | v::rv -> vc_lv rv (addVar (v,t) tabVars_rec2 tabObjets)
             in vc_ld rd (vc_lv lVar tabVars_rec1)
   in vc_ld lDecl tabVars
 
 
 (* retourne le type cible *)
-let vc_cible cible tabVars tabClasses =
+let vc_cible cible tabVars tabObjets =
   match cible with
     | Var(s) -> variableGetType s tabVars
-    | ChampCible(e, s) -> champMembreGetType (vc_expr e tabVars tabClasses) s tabClasses
+    | ChampCible(e, s) -> champMembreGetType (vc_expr e tabVars tabObjets) s tabObjets
 
 
 (* ne retourne rien *)
-let rec vc_instruc instruc tabVars tabClasses =
+let rec vc_instruc instruc tabVars tabObjets =
   let rec vc_i i_rec =
     match i_rec with
-      | Expr(e) -> vc_expr e tabVars tabClasses ; ()
-      | Bloc(b) -> vc_bloc b tabVars tabClasses
+      | Expr(e) -> vc_expr e tabVars tabObjets ; ()
+      | Bloc(b) -> vc_bloc b tabVars tabObjets
       | Return -> ()
-      | IfThenElse(e, i1, i2) -> vc_expr e tabVars tabClasses ; vc_i i1 ; vc_i i2
+      | IfThenElse(e, i1, i2) -> vc_expr e tabVars tabObjets ; vc_i i1 ; vc_i i2
       | Affectation(c, e) ->
-          let typeChamp = vc_cible c tabVars tabClasses in
-          let typeExpr = vc_expr e tabVars tabClasses
+          let typeChamp = vc_cible c tabVars tabObjets in
+          let typeExpr = vc_expr e tabVars tabObjets
           in
             if (typeChamp=typeExpr) then ()
             else raise (VC_Error ("le type du champ (" ^ typeChamp ^ ") ne correspond pas a celui de la valeur affecte (" ^ typeExpr ^ ")"))
   in vc_i instruc
 
 (* ne retourne rien *)
-and vc_lInstruc linstruc tabVars tabClasses =
+and vc_lInstruc linstruc tabVars tabObjets =
   let rec vc_li li_rec =
     match li_rec with
       | [] -> ()
-      | i::l -> (vc_instruc i tabVars tabClasses) ; (vc_li l)
+      | i::l -> (vc_instruc i tabVars tabObjets) ; (vc_li l)
   in vc_li linstruc
 
 (* ne retourne rien *)
-and vc_bloc bloc tabVars tabClasses =
-  match bloc with (ld, li) -> vc_lInstruc li (vc_lDecl ld tabVars tabClasses) tabClasses
+and vc_bloc bloc tabVars tabObjets =
+  match bloc with (ld, li) -> vc_lInstruc li (vc_lDecl ld tabVars tabObjets) tabObjets
 
-(* retourne tabClasses actualises avec la variable et la methode automatiquement cree la cas echeant *)
-let vc_champ champ tabVars tabClasses =
+(* retourne tabObjets actualises avec la variable et la methode automatiquement cree la cas echeant *)
+let vc_champ champ tabVars tabObjets =
   match champ with (a,p) ->
     try
-      let thisClasse = (Hashtbl.find tabVars "this")
+      let thisObjet = (Hashtbl.find tabVars "this")
       in
-        match (Hashtbl.find tabClasses thisClasse) with (prev_h, tabMethodes, tabChamps) ->
+        match (Hashtbl.find tabObjets thisObjet) with (prev_h, tabMethodes, tabChamps) ->
           match p with (nomChamp, typeChamp) ->
             (if (a) then Hashtbl.add tabMethodes nomChamp ([], typeChamp) ); (*Methode d'acces du nom du champs*)
             Hashtbl.add tabChamps nomChamp typeChamp ;
-            Hashtbl.replace tabClasses thisClasse (prev_h, tabMethodes, tabChamps) ; tabClasses
-    with Not_found -> raise (VC_Error ("le champ n'est pas dans une classe"))
+            Hashtbl.replace tabObjets thisObjet (prev_h, tabMethodes, tabChamps) ; tabObjets
+    with Not_found -> raise (VC_Error ("le champ n'est pas dans un objet"))
 
-(* retourne tabClasses actualise avec les variables et leur methode automatiquement cree la cas echeant *)
-let vc_lChamp lChamp tabVars tabClasses =
-  let rec vc_lc lc tabClasses_rec =
+(* retourne tabObjets actualise avec les variables et leur methode automatiquement cree la cas echeant *)
+let vc_lChamp lChamp tabVars tabObjets =
+  let rec vc_lc lc tabObjets_rec =
     match lc with
-      | [] -> tabClasses_rec
-      | ch::l -> vc_lc l (vc_champ ch tabVars tabClasses_rec)
-  in vc_lc lChamp tabClasses
+      | [] -> tabObjets_rec
+      | ch::l -> vc_lc l (vc_champ ch tabVars tabObjets_rec)
+  in vc_lc lChamp tabObjets
 
 
-(* retourne tabClasses actualise avec la methode cree *)
-let vc_methode methode tabVars tabClasses =
-  let thisClasse = (Hashtbl.find tabVars "this") in
+(* retourne tabObjets actualise avec la methode cree *)
+let vc_methode methode tabVars tabObjets =
+  let thisObjet = (Hashtbl.find tabVars "this") in
   let listeTypeParam = List.map (fun (nomParam, typeParam) -> typeParam) methode.listParamMethode in
   let typeRetour = match methode.typeRetour with Some(tr) -> tr | None -> "Void"
   in
     (if (methode.isOverrideMethode) then
-      let prevTypeRetour = methodeMembreGetType thisClasse methode.nomMethode listeTypeParam tabClasses
+      let prevTypeRetour = methodeMembreGetType thisObjet methode.nomMethode listeTypeParam tabObjets
       in
         if(prevTypeRetour=typeRetour) then ()
         else raise (VC_Error ("une methode Override doit avoir la même signature et le meme type de retour"))
     else
-      match (Hashtbl.find tabClasses thisClasse) with (prev_h, tabMethodes, prev_tabChamps) ->
-        if (methodeMembreExists thisClasse methode.nomMethode listeTypeParam tabClasses) then
+      match (Hashtbl.find tabObjets thisObjet) with (prev_h, tabMethodes, prev_tabChamps) ->
+        if (methodeMembreExists thisObjet methode.nomMethode listeTypeParam tabObjets) then
           raise (VC_Error ("une methode est deja definit avec cette signature dans ce scope"))
         else Hashtbl.add tabMethodes methode.nomMethode (listeTypeParam, typeRetour);
-        Hashtbl.replace tabClasses thisClasse (prev_h, tabMethodes, prev_tabChamps) ; ()
-    ) ; vc_bloc methode.corpsMethode (vc_lParam methode.listParamMethode tabVars tabClasses) tabClasses ; tabClasses
+        Hashtbl.replace tabObjets thisObjet (prev_h, tabMethodes, prev_tabChamps) ; ()
+    ) ; vc_bloc methode.corpsMethode (vc_lParam methode.listParamMethode tabVars tabObjets) tabObjets ; tabObjets
 
-(* retourne tabClasses actualise avec les methodes crees *)
-let vc_lMethode lMethode tabVars tabClasses =
-  let rec vc_lm lm tabClasses_rec =
+(* retourne tabObjets actualise avec les methodes crees *)
+let vc_lMethode lMethode tabVars tabObjets =
+  let rec vc_lm lm tabObjets_rec =
     match lm with
-      | [] -> tabClasses_rec
-      | m::l -> vc_lm l (vc_methode m tabVars tabClasses_rec)
-  in vc_lm lMethode tabClasses
+      | [] -> tabObjets_rec
+      | m::l -> vc_lm l (vc_methode m tabVars tabObjets_rec)
+  in vc_lm lMethode tabObjets
 
 
-(* retourne tabClasses actualise *)
-let vc_corpsObjet corpsObjet tabVars tabClasses =
+(* retourne tabObjets actualise *)
+let vc_corpsObjet corpsObjet tabVars tabObjets =
   match corpsObjet with (lc, lm) ->
-    vc_lMethode lm tabVars (vc_lChamp lc tabVars tabClasses)
+    vc_lMethode lm tabVars (vc_lChamp lc tabVars tabObjets)
 
 
 (* ne retourne rien *)
-let vc_heritage heritage tabVars tabClasses =
-  methodeMembreGetType heritage.nomHeritage "0_construct" (vc_lExpr heritage.listArgsHeritage tabVars tabClasses) tabClasses
+let vc_heritage heritage tabVars tabObjets =
+  methodeMembreGetType heritage.nomHeritage "0_construct" (vc_lExpr heritage.listArgsHeritage tabVars tabObjets) tabObjets
 
-(*
+
+(* retourne tabObjets actualise *)
+let vc_objet objet tabObjets =
+  tabObjets (*TODO verif que le typeHeritage est une classe cree un tabVars avec this et eventuellement super et vc du corps ajouter l'objet varObjet distinction classe/objIsolee par la presence ou non d'un constructeur *)
+
+(* retourne tabObjets actualise *)
+let vc_lobjets lObjet tabObjets =
+  let rec vc_lo lo tabObjets_rec =
+    match lo with
+      | [] -> tabObjets_rec
+      | o::l -> vc_lo l (vc_objet o tabObjets_rec)
+  in vc_lo lObjet tabObjets
+
 (* ne retourne rien *)
 let vc_prog prog =
-  let tabClasses = Hashtbl.create 10 in 
+  let tabObjets = Hashtbl.create 10 in 
   let tabMethodesInt = Hashtbl.create 1 in
   let tabMethodesStr = Hashtbl.create 2
   in
@@ -316,8 +332,6 @@ let vc_prog prog =
     Hashtbl.add tabMethodesStr "0_construct" (["String"], "String");
     Hashtbl.add tabMethodesStr "print" ([], "Void");
     Hashtbl.add tabMethodesStr "println" ([], "Void");
-    Hashtbl.add tabClasses ("Integer", None, tabMethodesInt);
-    Hashtbl.add tabClasses ("String", None, tabMethodesStr);
-    match prog with (l,b) -> vc_bloc b (vc_lobjets l tabClasses)
-
-*)
+    Hashtbl.add tabObjets "Integer" (None, tabMethodesInt, (Hashtbl.create 0));
+    Hashtbl.add tabObjets "String" (None, tabMethodesStr, (Hashtbl.create 0));
+    match prog with (l,b) -> vc_bloc b (Hashtbl.create 10) (vc_lobjets l tabObjets)
