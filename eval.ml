@@ -1,33 +1,36 @@
 open Ast
 
 (*
+    (*nomClasse*)
+    type typeType = string
+
     (*nomVar : typeVar*)
-    type tabVars = (string, string) Hashtbl.t
+    type tabVars = (string, typeType) Hashtbl.t
     (*dont this du type de la classe courante
       dont super du type du parent de la classe courante*)
 
     (*nomMethode : lParamType, typeRetour*)
-    type tabMethodes = (string, string list * string) Hashtbl.t
+    type tabMethodes = (string, string list * typeType) Hashtbl.t
     (*dont methode 0_construct qui correspond  aux constructeurs de la classe*)
 
     (*nomClasse : (heritageClasseParente, tabMethodesMembres, tabChamps)*)
-    type tabClasses = (string, (string option * tabMethodes * tabVars)) Hashtbl.t
+    type tabClasses = (string, (typeType option * tabMethodes * tabVars)) Hashtbl.t
 *)
 
 exception Not_here
 
 
 
-(* retourne le type de s *)
-let classeGetType n tabClasses =
-  try (Hashtbl.find tabClasses n ; n)
-  with Not_found -> raise (VC_Error ("classe non declaree : " ^ n))
+(* retourne le type de la classe (i.e. elle-meme) *)
+let classeGetType nomClasse tabClasses =
+  try (Hashtbl.find tabClasses nomClasse ; nomClasse)
+  with Not_found -> raise (VC_Error ("classe non declaree : " ^ nomClasse))
 
 
-(* retourne le type de s *)
-let variableGetType s tabVars =
-  try (Hashtbl.find tabVars s)
-  with Not_found -> raise (VC_Error ("variable non declaree : " ^ s))
+(* retourne le type de la variable *)
+let variableGetType nomVar tabVars =
+  try (Hashtbl.find tabVars nomVar)
+  with Not_found -> raise (VC_Error ("variable non declaree : " ^ nomVar))
 
 
 (* retourne le type de retour de la methode *)
@@ -70,6 +73,11 @@ let methodeMembreGetType typeClasse nomMethode paramMethode tabClasses =
                     | None -> raise (VC_Error ("pas de methode avec cette signature, dans la classe : " ^ typeClasse ^ if(typeClasse!=c_rec) then (" (ni dans ces classes heritees jusqu'a : " ^ c_rec ^ ")") else ""))
         with Not_found -> raise (VC_Error ("classe non declaree : " ^ c_rec))
       in mmgt_rec typeClasse
+
+(* retourne false s'il n'existe pas de methode avec cette signature *)
+let methodeMembreExists typeClasse nomMethode paramMethode tabClasses =
+  try (methodeMembreGetType typeClasse nomMethode paramMethode tabClasses ; true)
+  with VC_Error(_) -> false
 
 
 (* retourne le type du champ *)
@@ -161,7 +169,7 @@ let rec vc_expr expr tabVars tabClasses =
       | MethodeLocal(n,s,l) ->
           methodeMembreGetType n s (vc_lExpr l tabVars tabClasses) tabClasses
       | Plus(e1,e2) | Moins(e1,e2) | Mult(e1,e2) | Div(e1,e2) ->
-        exprEstInteger e1 ; exprEstInteger e2
+          exprEstInteger e1 ; exprEstInteger e2
       | Concat(e1,e2) ->
           let type1 = vc_e e1 in
           let type2 = vc_e e2
@@ -181,7 +189,7 @@ and vc_lExpr lexpr tabVars tabClasses =
   in vc_le lexpr
 
 
-(* Ne retourne rien *)
+(* ne retourne rien *)
 let vc_comp comp tabVars tabClasses =
   match comp with (e1,o,e2) -> vc_expr e1 tabVars tabClasses ; vc_expr e2 tabVars tabClasses ; ()
 
@@ -208,7 +216,7 @@ let vc_cible cible tabVars tabClasses =
     | ChampCible(e, s) -> champMembreGetType (vc_expr e tabVars tabClasses) s tabClasses
 
 
-(* Ne retourne rien *)
+(* ne retourne rien *)
 let rec vc_instruc instruc tabVars tabClasses =
   let rec vc_i i_rec =
     match i_rec with
@@ -224,7 +232,7 @@ let rec vc_instruc instruc tabVars tabClasses =
             else raise (VC_Error ("le type du champ (" ^ typeChamp ^ ") ne correspond pas a celui de la valeur affecte (" ^ typeExpr ^ ")"))
   in vc_i instruc
 
-(* Ne retourne rien *)
+(* ne retourne rien *)
 and vc_lInstruc linstruc tabVars tabClasses =
   let rec vc_li li_rec =
     match li_rec with
@@ -232,22 +240,80 @@ and vc_lInstruc linstruc tabVars tabClasses =
       | i::l -> (vc_instruc i tabVars tabClasses) ; (vc_li l)
   in vc_li linstruc
 
-(* Ne retourne rien *)
+(* ne retourne rien *)
 and vc_bloc bloc tabVars tabClasses =
   match bloc with (ld, li) -> vc_lInstruc li (vc_lDecl ld tabVars tabClasses) tabClasses
 
+(* retourne tabClasses actualises avec la variable et la methode automatiquement cree la cas echeant *)
+let vc_champ champ tabVars tabClasses =
+  match champ with (a,p) ->
+    try
+      let thisClasse = (Hashtbl.find tabVars "this")
+      in
+        match (Hashtbl.find tabClasses thisClasse) with (prev_h, tabMethodes, tabChamps) ->
+          match p with (nomChamp, typeChamp) ->
+            (if (a) then Hashtbl.add tabMethodes nomChamp ([], typeChamp) ); (*Methode d'acces du nom du champs*)
+            Hashtbl.add tabChamps nomChamp typeChamp ;
+            Hashtbl.replace tabClasses thisClasse (prev_h, tabMethodes, tabChamps) ; tabClasses
+    with Not_found -> raise (VC_Error ("le champ n'est pas dans une classe"))
+
+(* retourne tabClasses actualise avec les variables et leur methode automatiquement cree la cas echeant *)
+let vc_lChamp lChamp tabVars tabClasses =
+  let rec vc_lc lc tabClasses_rec =
+    match lc with
+      | [] -> tabClasses_rec
+      | ch::l -> vc_lc l (vc_champ ch tabVars tabClasses_rec)
+  in vc_lc lChamp tabClasses
+
+
+(* retourne tabClasses actualise avec la methode cree *)
+let vc_methode methode tabVars tabClasses =
+  let thisClasse = (Hashtbl.find tabVars "this") in
+  let listeTypeParam = List.map (fun (nomParam, typeParam) -> typeParam) methode.listParamMethode in
+  let typeRetour = match methode.typeRetour with Some(tr) -> tr | None -> "Void"
+  in
+    (if (methode.isOverrideMethode) then
+      let prevTypeRetour = methodeMembreGetType thisClasse methode.nomMethode listeTypeParam tabClasses
+      in
+        if(prevTypeRetour=typeRetour) then ()
+        else raise (VC_Error ("une methode Override doit avoir la même signature et le meme type de retour"))
+    else
+      match (Hashtbl.find tabClasses thisClasse) with (prev_h, tabMethodes, prev_tabChamps) ->
+        if (methodeMembreExists thisClasse methode.nomMethode listeTypeParam tabClasses) then
+          raise (VC_Error ("une methode est deja definit avec cette signature dans ce scope"))
+        else Hashtbl.add tabMethodes methode.nomMethode (listeTypeParam, typeRetour);
+        Hashtbl.replace tabClasses thisClasse (prev_h, tabMethodes, prev_tabChamps) ; ()
+    ) ; vc_bloc methode.corpsMethode (vc_lParam methode.listParamMethode tabVars tabClasses) tabClasses ; tabClasses
+
+(* retourne tabClasses actualise avec les methodes crees *)
+let vc_lMethode lMethode tabVars tabClasses =
+  let rec vc_lm lm tabClasses_rec =
+    match lm with
+      | [] -> tabClasses_rec
+      | m::l -> vc_lm l (vc_methode m tabVars tabClasses_rec)
+  in vc_lm lMethode tabClasses
+
+
+(* retourne tabClasses actualise *)
+let vc_corpsObjet corpsObjet tabVars tabClasses =
+  match corpsObjet with (lc, lm) ->
+    vc_lMethode lm tabVars (vc_lChamp lc tabVars tabClasses)
+
+
+(* ne retourne rien *)
+let vc_heritage heritage tabVars tabClasses =
+  methodeMembreGetType heritage.nomHeritage "0_construct" (vc_lExpr heritage.listArgsHeritage tabVars tabClasses) tabClasses
 
 (*
-(* retourne tabClasses actualise avec la methode automatiquement cree la cas echeant *)
-let vc_champ
-
-(* Ne retourne rien *)
+(* ne retourne rien *)
 let vc_prog prog =
   let tabClasses = Hashtbl.create 10 in 
   let tabMethodesInt = Hashtbl.create 1 in
   let tabMethodesStr = Hashtbl.create 2
   in
+    Hashtbl.add tabMethodesInt "0_construct" (["Integer"], "Integer");
     Hashtbl.add tabMethodesInt "toString" ([], "String");
+    Hashtbl.add tabMethodesStr "0_construct" (["String"], "String");
     Hashtbl.add tabMethodesStr "print" ([], "Void");
     Hashtbl.add tabMethodesStr "println" ([], "Void");
     Hashtbl.add tabClasses ("Integer", None, tabMethodesInt);

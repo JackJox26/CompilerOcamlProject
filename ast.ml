@@ -53,7 +53,7 @@ type methodeType = {
 type corpsType = (champType list * methodeType list)
 
 
-type heritageType = { nomHeritage : string; listArgsHeritage : exprType list }
+type heritageType = { nomHeritage : typeType; listArgsHeritage : exprType list }
 
 
 type objetType = {
