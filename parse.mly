@@ -138,7 +138,7 @@ corpsObjet:
 objet:
   CLASS n=NOMCLASSE PARENT_G lp=optLParam PARENT_D EXTENDS h=NOMCLASSE PARENT_G le=optLExpr PARENT_D b=option(bloc) c=corpsObjet  { { nomObjet=n ; estClasse=true ; listParamClasse=lp ; oNomHeritage=Some(h) ; listArgsHeritage=le ; oConstructObjet=b ; corpsObjet=c  } }
 | CLASS n=NOMCLASSE PARENT_G lp=optLParam PARENT_D b=option(bloc) c=corpsObjet                                                    { { nomObjet=n ; estClasse=true ; listParamClasse=lp ; oNomHeritage=None ; listArgsHeritage=[] ; oConstructObjet=b ; corpsObjet=c  } }
-| OBJECT n=NOMCLASSE b=option(bloc) c=corpsObjet                                                                                  { { nomObjet=n ; estClasse=false ; listParamClasse=[] ; oNomHeritage=None ; listArgsHeritage=[] ; oConstructObjet=b ; corpsObjet=c } }
+| OBJECT n=NOMCLASSE b=option(bloc) IS c=corpsObjet                                                                               { { nomObjet=n ; estClasse=false ; listParamClasse=[] ; oNomHeritage=None ; listArgsHeritage=[] ; oConstructObjet=b ; corpsObjet=c } }
 
 lObjets:
                             { [] }
