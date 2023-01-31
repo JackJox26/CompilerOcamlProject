@@ -17,7 +17,6 @@ open Ast
 %token OVERRIDE AUTO DEF NEW RETURN OBJECT
 %token EOF
 
-%right AFFECT
 %nonassoc OPERATEUR
 %left PLUS MOINS CONCAT
 %left MUL DIV
@@ -89,7 +88,6 @@ cible:
   s=ID                                                  { ChampCible("this",s) }
 | s1=ID POINT s2=ID                                     { ChampCible(s1,s2) }       (*s1 -> this ou super*)
 | PARENT_G n=NOMCLASSE s1=ID PARENT_D POINT s2=ID       { ChampCibleCast(n,s1,s2) } (*s1 -> this ou super*)
-| PARENT_G c=cible PARENT_D                             { c }
 
 
 lIdent:
