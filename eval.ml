@@ -223,7 +223,10 @@ let vc_lDecl lDecl tabVars tabObjets=
 let vc_cible cible tabVars tabObjets =
   match cible with
     | Var(s) -> variableGetType s tabVars
-    | ChampCible(e, s) -> champMembreGetType (vc_expr e tabVars tabObjets) s tabObjets
+    | ChampCible(s1, s2) -> vc_expr (Membre(s1, s2)) tabVars tabObjets
+    | ChampCibleCast(n, s1, s2) ->
+        Hashtbl.replace tabVars "this" (vc_expr (Cast(n, Id(s1))) tabVars tabObjets) ;
+        vc_expr (Membre(s1, s2)) tabVars tabObjets
 
 
 (* ne retourne rien *)

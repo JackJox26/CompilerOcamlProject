@@ -49,13 +49,13 @@ lParam:
  
 
 expr:
-  s= ID                             %prec REDUCEID      { Id(s) }
+  s= ID                               %prec REDUCEID    { Id(s) }
 | v= CSTE                                               { Cste(v) }
 | s= STR                                                { Str(s) }
 | PARENT_G e=expr PARENT_D                              { e }
 | PARENT_G n=NOMCLASSE e=expr PARENT_D                  { Cast(n,e) }
 | s1=ID POINT s2=ID                                     { Membre(s1,s2) } (*this ou super*)
-| PARENT_G s1=ID PARENT_D POINT s2=ID                   { Membre(s1,s2) } (*this ou super*)
+(*| PARENT_G s1=ID PARENT_D POINT s2=ID                   { Membre(s1,s2) } (*this ou super*)*)
 | NEW n=NOMCLASSE PARENT_G l=optLExpr PARENT_D          { Instance(n,l) }
 | e=expr POINT s=ID PARENT_G l=optLExpr PARENT_D        { MethodeExpr(e,s,l) }
 | n=NOMCLASSE POINT s=ID PARENT_G l=optLExpr PARENT_D   { MethodeLocal(n,s,l) }
@@ -86,8 +86,9 @@ lDeclVar:
 
 
 cible:
-  s=ID                                                  { Var(s) }
-| e=expr POINT s=ID                                     { ChampCible(e,s) }
+  s=ID                                                  { ChampCible("this",s) }
+| s1=ID POINT s2=ID                                     { ChampCible(s1,s2) }       (*s1 -> this ou super*)
+| PARENT_G n=NOMCLASSE s1=ID PARENT_D POINT s2=ID       { ChampCibleCast(n,s1,s2) } (*s1 -> this ou super*)
 | PARENT_G c=cible PARENT_D                             { c }
 
 

@@ -36,7 +36,8 @@ type declType = (string list * typeType)
 
 type cibleType = 
 	  Var of string 
-	| ChampCible of (exprType * string)
+	| ChampCible of (string * string)
+	| ChampCibleCast of (string * string * string)
 
 
 type instructionType = 

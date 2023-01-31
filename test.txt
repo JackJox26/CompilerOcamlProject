@@ -1,0 +1,4 @@
+/* corps du constructeur */
+{ /* Bloc qui correspond au programme principal */
+  this.truc;
+}
