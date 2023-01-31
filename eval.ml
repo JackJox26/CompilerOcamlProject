@@ -171,7 +171,7 @@ let rec vc_expr expr tabVars tabObjets =
             methodeMembreGetType n "0_construct" (vc_lExpr l tabVars tabObjets) tabObjets
         | MethodeExpr(e,s,l) ->
             methodeMembreGetType (vc_e e) s (vc_lExpr l tabVars tabObjets) tabObjets
-        | MethodeLocal(n,s,l) ->
+        | MethodeClasse(n,s,l) ->
             methodeMembreGetType n s (vc_lExpr l tabVars tabObjets) tabObjets
         | Plus(e1,e2) | Moins(e1,e2) | Mult(e1,e2) | Div(e1,e2) | Comp(e1,_,e2) ->
             let _ = exprEstInteger e1 in

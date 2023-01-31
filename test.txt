@@ -1,4 +1,65 @@
-/* corps du constructeur */
+/* par defaut, on ajoute un ' au nom de l'objet. Modifiable avec setName */
+
 { /* Bloc qui correspond au programme principal */
-  this.truc;
+  p1, p2, p3, clone1, clone2: Point;
+  true, false, fv: Integer;
+  o: PointColore;
+  pn: PointNoir;
+  dp: DefaultPoint;
+  is
+  "Debut du programme".println();
+  true := 1;
+  false := 0;
+  p1 := new Point(1, 5);
+  p2 := new Point(2, 3);
+  p3 := new Point(0, 0);
+  fv := 12;
+  o := new PointColore(0, 0, CouleurFactory.blanc());
+  pn := new PointNoir(+1, -1);
+  dp := new DefaultPoint();
+  p1.print(truc);
+  p2.print(0); 
+  p2.move(p1.getx(), p1.gety(), 0);
+  p2.print(0);
+  o.print(0);
+  o.setName("origine");
+  o.print(true);
+  p2.move(p1.getx()-2*5-3, p1.gety(), 0);
+  p2.print(true);
+
+  "On va essayer le clonage:".println();
+  clone1 := p1.clone(); clone1.print(false);
+  "p1 isCloned: ".print();
+  if p1.isCloned() then "OK".println(); else "KO".println();
+  clone2 := clone1.clone(); clone2.move(54, 36, 0).print(false);
+
+  "Impression de tous les clones de p1:".println();
+   p1.allClones();
+  "Fin de l'impression de tous les clones".println();
+  
+  /* Ne doit pas compiler car clone() renvoie statiquement un Point alors
+   * que o est declare comme PointColore
+   * o := o.clone();
+   */
+
+  "Valeur du compteur de nombre de points: ".println();
+  Point.get().toString().println();
+
+  p1 := p1.clone().move(+2, -3, 0);
+  p1.print(true);
+  o.clone().print(true);
+  "test(Point, PointColore, PointNoir)".println();
+  Test.test(p1, o, pn);
+  "test(PointNoir, PointNoir, PointNoir)".println();
+  Test.test(pn, pn, pn);
+  p1 := pn; /* affectation entre references ! */
+  Test.test2(o);
+  Test.test2(pn);
+  o := pn;  /* Idem : on doit avoir de la liaison dynamique ci-dessous */
+
+  "test(PointNoir, PointNoir, PointNoir)".println();
+  Test.test(p1, o, pn);
+  Test.test2(o);
+  Test.test2(pn);
+  "\nDone".println();
 }

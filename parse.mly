@@ -53,11 +53,12 @@ expr:
 | s= STR                                                { Str(s) }
 | PARENT_G e=expr PARENT_D                              { e }
 | PARENT_G n=NOMCLASSE e=expr PARENT_D                  { Cast(n,e) }
+| e=expr POINT s=ID PARENT_G l=optLExpr PARENT_D        { MethodeExpr(e,s,l) }
+| s=ID PARENT_G l=optLExpr PARENT_D                     { MethodeExpr(Id("this"),s,l) }
+| n=NOMCLASSE POINT s=ID PARENT_G l=optLExpr PARENT_D   { MethodeClasse(n,s,l) }
 | s1=ID POINT s2=ID                                     { Membre(s1,s2) } (*this ou super*)
 (*| PARENT_G s1=ID PARENT_D POINT s2=ID                   { Membre(s1,s2) } (*this ou super*)*)
 | NEW n=NOMCLASSE PARENT_G l=optLExpr PARENT_D          { Instance(n,l) }
-| e=expr POINT s=ID PARENT_G l=optLExpr PARENT_D        { MethodeExpr(e,s,l) }
-| n=NOMCLASSE POINT s=ID PARENT_G l=optLExpr PARENT_D   { MethodeLocal(n,s,l) }
 | e1= expr PLUS e2= expr                                { Plus(e1,e2) }
 | e1= expr MOINS e2= expr                               { Moins(e1,e2) }
 | e1= expr MUL e2= expr                                 { Mult(e1,e2) }

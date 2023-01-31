@@ -21,7 +21,7 @@ type exprType =
 	| Membre of (string * string)
 	| Instance of (string * exprType list)
 	| MethodeExpr of (exprType * string * exprType list)
-	| MethodeLocal of (string * string * exprType list)
+	| MethodeClasse of (typeType * string * exprType list)
 	| Plus of (exprType * exprType)
 	| Moins of (exprType * exprType)
 	| Mult of (exprType * exprType)
