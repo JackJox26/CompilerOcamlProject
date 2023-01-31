@@ -101,7 +101,7 @@ instruc:
 | b=bloc                                                { Bloc(b) }
 | RETURN POINTVIRGULE                                   { Return }
 | IF e=expr THEN i1=instruc ELSE i2=instruc             { IfThenElse(e,i1,i2) }
-| c=cible AFFECT e= expr                                { Affectation(c,e) }
+| c=cible AFFECT e= expr POINTVIRGULE                   { Affectation(c,e) }
 
 lInstruc:
   i=instruc                 { [i] }
@@ -118,7 +118,7 @@ bloc:
 
 
 champ:
-  VAR a=boption(AUTO) p=param                           { (a,p) }
+  VAR a=boption(AUTO) p=param POINTVIRGULE              { (a,p) }
 
 lChamp:
                             { [] }

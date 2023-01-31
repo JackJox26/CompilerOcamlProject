@@ -154,19 +154,19 @@ let rec vc_expr expr tabVars tabObjets =
               with Not_found -> raise (VC_Error ("classe non declaree : " ^ typeExpr))
             in cast_rec (vc_e e)
         | Membre(s1,s2) ->
-            if (s1="This") then
-              try match (Hashtbl.find tabObjets (Hashtbl.find tabVars "This")) with
+            if (s1="this") then
+              try match (Hashtbl.find tabObjets (Hashtbl.find tabVars "this")) with
                 |  (_, _, tabChamps) ->
                     try (Hashtbl.find tabVars s2)
                     with Not_found -> raise (VC_Error ("L'objet n'a pas d'attribut : " ^ s2))
-              with Not_found -> raise (VC_Error ("This appele en dehors d'un objet !"))
-            else if (s1="Super") then
-              try match (Hashtbl.find tabObjets (Hashtbl.find tabVars "Super")) with
+              with Not_found -> raise (VC_Error ("this appele en dehors d'un objet !"))
+            else if (s1="super") then
+              try match (Hashtbl.find tabObjets (Hashtbl.find tabVars "super")) with
                 |  (_, _, tabChamps) ->
                     try (Hashtbl.find tabVars s2)
                     with Not_found -> raise (VC_Error ("La classe n'a pas d'attribut : " ^ s2))
-              with Not_found -> raise (VC_Error ("Super appele en dehors d'une classe ayant un parent !"))
-            else raise (VC_Error ("impossible d'acceder a un champ externe (limite a This ou Super) : " ^ s1 ^ "." ^s2))
+              with Not_found -> raise (VC_Error ("super appele en dehors d'une classe ayant un parent !"))
+            else raise (VC_Error ("impossible d'acceder a un champ externe (limite a this ou super) : " ^ s1 ^ "." ^s2))
         | Instance(n,l) ->
             methodeMembreGetType n "0_construct" (vc_lExpr l tabVars tabObjets) tabObjets
         | MethodeExpr(e,s,l) ->
