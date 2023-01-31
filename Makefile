@@ -18,10 +18,10 @@ parse.mli : parse.mly ast.mli
 	menhir --dump --explain --infer parse.mly
 #	menhir --dump --explain --strict --infer tpParse.mly
 
-compileur: parse.mli $(SOURCES)
+compilateur: parse.mli $(SOURCES)
 	ocamlc -c ast.ml
 	ocamlc $(INTERFACES)
-	ocamlc -o compileur $(SOURCES)
+	ocamlc -o compilateur $(SOURCES)
 
 clean:
-	rm -rf  tp testLex compileur *.o *.cmi *.cmo *.cmx *~ $(GENERATED) out.txt
+	rm -rf  tp testLex compilateur *.o *.cmi *.cmo *.cmx *~ $(GENERATED) out.txt

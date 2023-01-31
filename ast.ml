@@ -26,7 +26,7 @@ type exprType =
 	| Moins of (exprType * exprType)
 	| Mult of (exprType * exprType)
 	| Div of (exprType * exprType)
-	| Comp of (expType * opType * expType)
+	| Comp of (exprType * opType * exprType)
 	| Concat of (exprType * exprType)
 	| MoinsU of exprType
 
