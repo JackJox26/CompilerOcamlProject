@@ -45,7 +45,7 @@ let LC = ( chiffre | lettre )
  *)
 rule
   token = parse (* a completer *)
-   minuscule LC * as id  { 
+    minuscule LC * as id { 
                         try 
                             Hashtbl.find keyword_table id
                         with
@@ -54,7 +54,7 @@ rule
                         }
 
 
-  |  majuscule LC * as nomclasse    {
+  | majuscule LC * as nomclasse    {
                                         NOMCLASSE nomclasse
                                     }
   | [' ''\t''\r']        { token lexbuf }     (* skip blanks *)
