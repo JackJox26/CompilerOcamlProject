@@ -26,9 +26,7 @@ let _ =
         "def", DEF;
         "new", NEW;
         "return", RETURN;
-        "object", OBJECT;
-        "this", AUTODESCRIPT("this");
-        "super", AUTODESCRIPT("super")
+        "object", OBJECT
       ]
 }
 

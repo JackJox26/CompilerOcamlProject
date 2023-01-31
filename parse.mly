@@ -1,7 +1,7 @@
 %{
 open Ast
 %}
-%token <string> ID NOMCLASSE AUTODESCRIPT
+%token <string> ID NOMCLASSE
 %token <int> CSTE
 %token <string> STR
 %token <Ast.opType> OPERATEUR
@@ -21,6 +21,8 @@ open Ast
 %left PLUS MOINS CONCAT
 %left MUL DIV
 %left UNITAIRE
+%nonassoc REDUCEID
+%right PARENT_D (*cast*)
 %left POINT (*methode*)
 
 (* l'axiome est aussi le nom de la fonction a appeler pour faire l'analyse syntaxique *)
@@ -46,25 +48,25 @@ lParam:
  
 
 expr:
-  s= ID                                                 { Id(s) }
-| v= CSTE                                               { Cste(v) }
-| s= STR                                                { Str(s) }
-| PARENT_G e=expr PARENT_D                              { e }
-| PARENT_G n=NOMCLASSE e=expr PARENT_D                  { Cast(n,e) }
-| e=expr POINT s=ID PARENT_G l=optLExpr PARENT_D        { MethodeExpr(e,s,l) }
-| s=ID PARENT_G l=optLExpr PARENT_D                     { MethodeExpr(Id("this"),s,l) }
-| n=NOMCLASSE POINT s=ID PARENT_G l=optLExpr PARENT_D   { MethodeClasse(n,s,l) }
-| ad=AUTODESCRIPT POINT s=ID                            { Membre(ad,s) } (*this ou super*)
-(*| PARENT_G s1=ID PARENT_D POINT s2=ID                   { Membre(s1,s2) } (*this ou super*)*)
-| NEW n=NOMCLASSE PARENT_G l=optLExpr PARENT_D          { Instance(n,l) }
-| e1= expr PLUS e2= expr                                { Plus(e1,e2) }
-| e1= expr MOINS e2= expr                               { Moins(e1,e2) }
-| e1= expr MUL e2= expr                                 { Mult(e1,e2) }
-| e1= expr DIV e2= expr                                 { Div(e1,e2) }
-| e1= expr op=OPERATEUR e2= expr                        { Comp(e1,op,e2) }
-| e1= expr CONCAT e2= expr                              { Concat(e1,e2) }
-| PLUS e= expr                        %prec UNITAIRE    { e }
-| MOINS e= expr                       %prec UNITAIRE    { MoinsU(e) }
+  s= ID                                           %prec REDUCEID        { Id(s) }
+| v= CSTE                                                               { Cste(v) }
+| s= STR                                                                { Str(s) }
+| PARENT_G e=expr PARENT_D                                              { e }
+| PARENT_G n=NOMCLASSE e=expr PARENT_D                                  { Cast(n,e) }
+| e=expr POINT s=ID PARENT_G l=optLExpr PARENT_D                        { MethodeExpr(e,s,l) }
+| s=ID PARENT_G l=optLExpr PARENT_D                                     { MethodeExpr(Id("this"),s,l) }
+| n=NOMCLASSE POINT s=ID PARENT_G l=optLExpr PARENT_D                   { MethodeClasse(n,s,l) }
+| s1=ID POINT s2=ID ol=option(delimited(PARENT_G, optLExpr, PARENT_D))  { match ol with None -> Membre(s1,s2) | Some(l) -> MethodeExpr(Id(s1),s2,l) } (*this ou super*)
+(*| PARENT_G s1=ID PARENT_D POINT s2=ID                                   { Membre(s1,s2) } (*this ou super*)*)
+| NEW n=NOMCLASSE PARENT_G l=optLExpr PARENT_D                          { Instance(n,l) }
+| e1= expr PLUS e2= expr                                                { Plus(e1,e2) }
+| e1= expr MOINS e2= expr                                               { Moins(e1,e2) }
+| e1= expr MUL e2= expr                                                 { Mult(e1,e2) }
+| e1= expr DIV e2= expr                                                 { Div(e1,e2) }
+| e1= expr op=OPERATEUR e2= expr                                        { Comp(e1,op,e2) }
+| e1= expr CONCAT e2= expr                                              { Concat(e1,e2) }
+| PLUS e= expr                                    %prec UNITAIRE        { e }
+| MOINS e= expr                                   %prec UNITAIRE        { MoinsU(e) }
 
 lExpr:
   e=expr                    { [e] }
@@ -84,9 +86,9 @@ lDeclVar:
 
 
 cible:
-  s=ID                                                           { ChampCible("this",s) }
-| ad=AUTODESCRIPT POINT s=ID                                     { ChampCible(ad,s) }       (*s1 -> this ou super*)
-| PARENT_G n=NOMCLASSE ad=AUTODESCRIPT PARENT_D POINT s=ID       { ChampCibleCast(n,ad,s) } (*s1 -> this ou super*)
+  s=ID                                                  { ChampCible("this",s) }
+| s1=ID POINT s2=ID                                     { ChampCible(s1,s2) }       (*s1 -> this ou super*)
+| PARENT_G n=NOMCLASSE s1=ID PARENT_D POINT s2=ID       { ChampCibleCast(n,s1,s2) } (*s1 -> this ou super*)
 
 
 lIdent:
