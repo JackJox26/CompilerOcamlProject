@@ -174,7 +174,8 @@ let rec vc_expr expr tabVars tabObjets =
         | MethodeLocal(n,s,l) ->
             methodeMembreGetType n s (vc_lExpr l tabVars tabObjets) tabObjets
         | Plus(e1,e2) | Moins(e1,e2) | Mult(e1,e2) | Div(e1,e2) | Comp(e1,_,e2) ->
-            exprEstInteger e1 ; exprEstInteger e2
+            let _ = exprEstInteger e1 in
+            exprEstInteger e2
         | Concat(e1,e2) ->
             let type1 = vc_e e1 in
             let type2 = vc_e e2
@@ -197,7 +198,10 @@ and vc_lExpr lexpr tabVars tabObjets =
 
 (* ne retourne rien *)
 let vc_comp comp tabVars tabObjets =
-  match comp with (e1,o,e2) -> vc_expr e1 tabVars tabObjets ; vc_expr e2 tabVars tabObjets ; ()
+  match comp with (e1,o,e2) ->
+    let _ = vc_expr e1 tabVars tabObjets in
+    let _ = vc_expr e2 tabVars tabObjets in
+    ()
 
 
 (* retourne tabVars actualise avec les variables declarees ajoutees comme des variables suplementaires *)
@@ -226,10 +230,10 @@ let vc_cible cible tabVars tabObjets =
 let rec vc_instruc instruc tabVars tabObjets =
   let rec vc_i i_rec =
     match i_rec with
-      | Expr(e) -> vc_expr e tabVars tabObjets ; ()
+      | Expr(e) -> let _ = vc_expr e tabVars tabObjets in ()
       | Bloc(b) -> vc_bloc b tabVars tabObjets
       | Return -> ()
-      | IfThenElse(e, i1, i2) -> vc_expr e tabVars tabObjets ; vc_i i1 ; vc_i i2
+      | IfThenElse(e, i1, i2) -> let _ = vc_expr e tabVars tabObjets in vc_i i1 ; vc_i i2
       | Affectation(c, e) ->
           let typeChamp = vc_cible c tabVars tabObjets in
           let typeExpr = vc_expr e tabVars tabObjets
@@ -308,7 +312,7 @@ let vc_corpsObjet corpsObjet tabVars tabObjets =
 
 (* retourne tabObjets actualise *)
 let vc_objet objet tabObjets =
-  try (Hashtbl.find tabObjets objet.nomObjet) ; raise (VC_Error ("le nom d'un objet ne peut pas etre reutilise : " ^ objet.nomObjet))
+  try let _ = (Hashtbl.find tabObjets objet.nomObjet) in raise (VC_Error ("le nom d'un objet ne peut pas etre reutilise : " ^ objet.nomObjet))
   with Not_found ->
     let tabVars = vc_lParam objet.listParamClasse (Hashtbl.create 20) tabObjets in
     let tabMethodes = Hashtbl.create 20

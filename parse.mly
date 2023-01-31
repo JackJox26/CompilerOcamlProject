@@ -4,6 +4,7 @@ open Ast
 %token <string> ID NOMCLASSE
 %token <int> CSTE
 %token <string> STR
+%token <Ast.opType> OPERATEUR
 %token PLUS MOINS MUL DIV
 %token PARENT_G PARENT_D
 %token ACCOLADE_G ACCOLADE_D
@@ -17,6 +18,7 @@ open Ast
 %token EOF
 
 %right AFFECT
+%nonassoc OPERATEUR
 %left PLUS MOINS CONCAT
 %left MUL DIV
 %left UNITAIRE
