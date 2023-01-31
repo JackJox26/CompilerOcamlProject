@@ -91,14 +91,12 @@ rule
   | '-' { MOINS }
   | '*' { MUL }
   | '/' { DIV }
-(*
   | '>' { OPERATEUR(Ast.PG) }
   | ">=" { OPERATEUR(Ast.PGE) }
   | '<' { OPERATEUR(Ast.PP) }
   | "<=" { OPERATEUR(Ast.PPE) }
   | '=' { OPERATEUR(Ast.EGAL) }
   | "<>" { OPERATEUR(Ast.NEGAL) }
-*)
   | '&' { CONCAT }
 
   | eof { EOF }

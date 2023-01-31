@@ -1,3 +1,12 @@
+type opType = 
+	  PGE
+	| PG
+	| PPE
+	| PP
+	| EGAL
+	| NEGAL
+
+
 type typeType = string
 
 
@@ -17,6 +26,7 @@ type exprType =
 	| Moins of (exprType * exprType)
 	| Mult of (exprType * exprType)
 	| Div of (exprType * exprType)
+	| Comp of (expType * opType * expType)
 	| Concat of (exprType * exprType)
 	| MoinsU of exprType
 

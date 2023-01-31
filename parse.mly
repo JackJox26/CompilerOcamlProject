@@ -61,6 +61,7 @@ expr:
 | e1= expr MOINS e2= expr                               { Moins(e1,e2) }
 | e1= expr MUL e2= expr                                 { Mult(e1,e2) }
 | e1= expr DIV e2= expr                                 { Div(e1,e2) }
+| e1= expr op=OPERATEUR e2= expr                        { Comp(e1,op,e2) }
 | e1= expr CONCAT e2= expr                              { Concat(e1,e2) }
 | PLUS e= expr                        %prec UNITAIRE    { e }
 | MOINS e= expr                       %prec UNITAIRE    { MoinsU(e) }
