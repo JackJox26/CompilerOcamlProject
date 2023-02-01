@@ -61,6 +61,7 @@ Hashtbl.add tabObjets "Elem" (None, tabMethodesElem, tabChampsElem)(* Pour teste
 let printType (typeType) = print_endline typeType
 (* let printParam () *)
 let printListParamType (listParamType) = List.iter (fun typeParam -> printType typeParam) listParamType
+let printParamType (paramType) = printListParamType (fst paramType) ; printType (snd paramType)
 
 let printTabVars (tabVars:tabVars) = Hashtbl.iter (fun idVariable typeVariable -> printType typeVariable) tabVars
 
