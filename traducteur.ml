@@ -256,9 +256,9 @@ and traducteur_instructionType t hash =
 let rec traducteur_methode label methode hashtable = (*TODO*)
     label ^ ": "
     ^ traducteur_bloc methode.corpsMethode hashtable
-    
-and traducteur_bloc b hashtable = (*TODO*)
-    ""
+
+let traducteur_bloc b hashtable = "" (*TODO*)
+
 (*générateur code du programme
     paramètre : p = ast du programme
                 ?(*A ajoute*) = la hashtable du traducteur pour stockage et acces des positions dans la pile*)
@@ -317,6 +317,7 @@ let traducteur_prog p (*hashtable à ajouter*) =
                                                     (*Maj hashtable des champs*)
                                                     Hashtbl.add champs_types o.nomObjet Hashtbl.create 20;
                                                     List.iteri(fun i c -> let (b,(n,t)) = c in Hashtbl.add (Hashtbl.find champs_types o.nomObjet) n (i+1)) cl;
+
                                                     (*Appel constructeur sur l'objet*)
                                                     "DUPN 1\nDUPN 1\nLOAD 0\nLOAD 0\nCALL\nPOPN 1\n" ^                                                                                                                                ) l
         
