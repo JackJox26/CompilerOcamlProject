@@ -1,21 +1,21 @@
-(* open Ast 
-open Eval  *)
+open Ast 
+open Eval
 
 
-    (*nomClasse*)
-    type typeType = string
+(*nomClasse*)
+type typeType = string
 
-    (*nomVar : typeVar*)
-    type tabVars = (string, typeType) Hashtbl.t
-    (*dont this du type de la classe courante
-      dont super du type du parent de la classe courante*)
+(*nomVar : typeVar*)
+type tabVars = (string, typeType) Hashtbl.t
+(*dont this du type de la classe courante
+  dont super du type du parent de la classe courante*)
 
-    (*nomMethode : lParamType, typeRetour*)
-    type tabMethodes = (string, string list * typeType) Hashtbl.t
-    (*dont methode 0_construct qui correspond  aux constructeurs de la classe*)
+(*nomMethode : lParamType, typeRetour*)
+type tabMethodes = (string, string list * typeType) Hashtbl.t
+(*dont methode 0_construct qui correspond  aux constructeurs de la classe*)
 
-    (*nomObjet : (heritageClasseParente, tabMethodesMembres, tabChamps)*)
-    type tabObjets = (string, (typeType option * tabMethodes * tabVars)) Hashtbl.t
+(*nomObjet : (heritageClasseParente, tabMethodesMembres, tabChamps)*)
+type tabObjets = (string, (typeType option * tabMethodes * tabVars)) Hashtbl.t
 
 
 
@@ -64,10 +64,27 @@ let printListParamType (listParamType) = List.iter (fun typeParam -> printType t
 
 let printTabVars (tabVars:tabVars) = Hashtbl.iter (fun idVariable typeVariable -> printType typeVariable) tabVars
 
+let printTabVars (tabVars:tabVars) = Hashtbl.iter (
+  fun (nomVar, typeVar) ->
+    print_endline (nomVar^" -> "^typeVar)
+  ) tabVars
 
-let printTabMethodes (tabMethodes:tabMethodes)= Hashtbl.iter (fun idMethode typeParamReturn -> printListParamType typeParamReturn ) tabMethodes
-(*
-let printTabObjets tabObjets = Hashtbl.iter (fun (* TODO *)) tabObjets
+let printTabMethodes (tabMethodes:tabMethodes) = Hashtbl.iter (
+  fun (nomMethode, (lParamType, typeRetour)) ->
+    print_endline (nomMethode^"("^(toString_lType lParamType)") -> " ^ typeRetour)
+  ) tabMethodes
+
+let toString_optType optType =
+  match optType with None -> "NON" | Some(t) -> t
+
+let printTabObjets (tabObjets:tabObjets) = Hashtbl.iter (
+  fun (nomObjet, (heritageClasseParente, tabMethodesMembres, tabChamps)) ->
+    print_endline nomObjet ^" extends:"^(toString_optType heritageClasseParente)^" {\n champs:\n" ;
+    test_printTabVars tabChamps ;
+    print_endline "\n methodes:\n"
+    printTabMethodes tabMethodesMembres ;
+    print_endline "}\n"
+  ) tabObjets
 
 
 (* test des prints *)
@@ -83,5 +100,5 @@ let test_printTabObjets = printTabObjets tabObjets ;
 (* TESTS UNITAIRES DES METHODES DE VERIFICATIONS CONTEXTUELLES *)
 let test1_variableGetType = printType(variableGetType "x" tabChampsElem); (* cas present *)
 let test2_variableGetType = printType(variableGetType "z" tabChampsElem); (* cas non declare *)
-*)
+
 (* TODO ... *)
