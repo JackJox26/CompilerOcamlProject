@@ -118,8 +118,17 @@ and traducteur_instructionType t hash pt =
 let traducteur_methode label methode hashtable = (*TODO*)
     label ^ ": "
     ^ traducteur_bloc methode.corpsMethode hashtable
-    
+
+
+
+(*générateur code d'une methode
+    paramètre : label = label associé à la méhotde
+                methode = arbre ast de la methode
+                hashtable = la hashtable du traducteur pour la visibilité des objets*)
+
 let traducteur_bloc b hashtable = (*TODO*)
+
+
 
 (*générateur code du programme
     paramètre : p = ast du programme
@@ -138,15 +147,15 @@ let traducteur_prog p (*hashtable à ajouter*) =
     |(l,bl) -> (*CREATION DU CODE DES METHODES*)  
                 "JUMP init\n"  ^ 
                 List.iter (fun o -> match o.corpsObjet with
-                                    |(_,ml) -> add methodes_types o.nomObjet Hashtbl.create 20;
+                                    |(_,ml) -> Hashtbl.add methodes_types o.nomObjet Hashtbl.create 20;
                                                 (*constructeur de l'objet*)
                                                 let eti =  genLabelEti in 
-                                                add (find methodes_types o.nomObjet) "constructeur" (0,eti) ;
+                                                Hashtbl.add (Hashtbl.find methodes_types o.nomObjet) "constructeur" (0,eti) ;   (*/!\ attention ce n'est pas une méthode mais un bloc dans ast*)
                                                 traducteur_methode eti o.oConstructObjet (*hshtable à ajouter*) ^
                                                 
                                                 (*chaque méthode de l'objet*)
                                                 List.iteri (fun i m ->  let eti2 = genLabelEti in 
-                                                                        add (find methodes_types o.nomObjet) m.nomMethode ((i+1),eti2);
+                                                                        Hashtbl.add (Hashtbl.find methodes_types o.nomObjet) m.nomMethode ((i+1),eti2);
                                                                         traducteur_methode eti2 m.corpsMethode (*hshtable à ajouter*) ^
                                                                                                                                         ) ml 
                                                                                                                                             ) l ^
@@ -155,27 +164,27 @@ let traducteur_prog p (*hashtable à ajouter*) =
                 List.iter (fun o -> "ALLOC " ^
                                     match o.corpsObjet with
                                     |(cl,ml) -> string_of_int (ml.length + 1) ^ "\n" ^
-                                                add adresses_table_methode o.nomObjet gpt; ptp;
+                                                Hashtbl.add adresses_table_methode o.nomObjet gpt; ptp;
                                                 "DUPN 1\n" ^
-                                                "PUSHA " ^ let (p,label) = (find (find methodes_types o.nomObjet) "constructeur") in label ^ "\n" ^
+                                                "PUSHA " ^ let (p,label) = (Hashtbl.find (Hashtbl.find methodes_types o.nomObjet) "constructeur") in label ^ "\n" ^
                                                 "STORE 0\n" ^
                                                 List.iter (fun m ->  "DUPN 1\n" ^
-                                                                        "PUSHA " ^ let (p2,label2) = (find (find methodes_types o.nomObjet) m.nomMethode) in label2 ^ "\n" ^
+                                                                        "PUSHA " ^ let (p2,label2) = (Hashtbl.find (Hashtbl.find methodes_types o.nomObjet) m.nomMethode) in label2 ^ "\n" ^
                                                                         "STORE " ^ string_of_int (p2) ^ "\n" ^
                                                                                                                                                                                 ) ml
                                                 (*CREATION OBJETS ISOLES*)
                                                 if o.isObjetIsole then
                                                     "ALLOC " ^ string_of_int (cl.length + 1) ^ "\n" ^
-                                                    add adresses_objets o.nomObjet gpt; ptp;
-                                                    add type_objets o.nomObjet o.nomObjet;
+                                                    Hashtbl.add adresses_objets o.nomObjet gpt; ptp;
+                                                    Hashtbl.add type_objets o.nomObjet o.nomObjet;
                                                     (*Affectation table méthodes*)
                                                     "DUPN 1\n" ^ 
-                                                    "PUSHG " ^ string_of_int (adresses_table_methode o.nomObjet) ^ "\n" ^ 
+                                                    "PUSHG " ^ string_of_int (Hashtbl.find adresses_table_methode o.nomObjet) ^ "\n" ^ 
                                                     "STORE 0\n" ^
                                                     
                                                     (*Maj hashtable des champs*)
-                                                    add champs_types o.nomObjet Hashtbl.create 20;
-                                                    List.iteri(fun i c -> let (b,(n,t)) = c in add (find champs_types o.nomObjet) n (i+1)) cl;
+                                                    Hashtbl.add champs_types o.nomObjet Hashtbl.create 20;
+                                                    List.iteri(fun i c -> let (b,(n,t)) = c in Hashtbl.add (Hashtbl.find champs_types o.nomObjet) n (i+1)) cl;
 
                                                     (*Appel constructeur sur l'objet*)
                                                     "DUPN 1\nDUPN 1\nLOAD 0\nLOAD 0\nCALL\nPOPN 1\n" ^                                                                                                                                ) l
