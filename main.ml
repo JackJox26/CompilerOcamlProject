@@ -20,33 +20,52 @@ let parse_with_error lexbuf file_in chan =
      * La valeur retournée par la production qui définit l'axiome renvoie une
      * valeur du type progType à définir dans ast.ml.
      *)
+
+    (*AST du code lu*)
+    print_newline ();
+    Printf.printf "Generation de l ast. . .";
+    print_newline ();
     let programme = Parse.prog Lex.token lexbuf in
-    Eval.vc_prog programme ;
-    print_newline ()
+
+    (*Effectuer les verifications contextuelles*)
+    print_newline ();
+    Printf.printf "Verification du contexte. . .";
+    print_newline ();
+    (*Renvoie une exception si le contexte est incorrect*)
+    let () = Eval.vc_prog programme in
+
+    (*Ecrire le code genere dans le fichier*)
+    print_newline ();
+    Printf.printf "Generation du code. . .";
+    print_newline ();
+    (*
+    let out = Traducteur.traducteur_prog programme hashtbl in
+    *)
+    Printf.fprintf chan "kwa"
   with (* traite exception général ... *)
     Parse.Error -> (* levée par l'analyseur syntaxique *)
-      Printf.fprintf stderr "Syntax error at position %a\n" print_position lexbuf ;
-      exit (-1)
+    Printf.fprintf stderr "Syntax error at position %a\n" print_position lexbuf;
+    exit (-1)
   | VC_Error msg ->
-     Printf.fprintf stderr "Erreur contextuelle: %s\n" msg ;
+     Printf.fprintf stderr "Erreur contextuelle: %s\n" msg;
      exit (-1)
-  (*| RUN_Error msg -> (* uniquement pour la version interprete *)
+  | RUN_Error msg -> (* uniquement pour la version interprete *)
      Printf.fprintf stderr "Erreur à l'execution: %s\n" msg;
-     exit (-1)*)
-  (*| MISC_Error msg -> (* pour l'instant juste erreur lexicale *)
+     exit (-1)
+  | MISC_Error msg -> (* pour l'instant juste erreur lexicale *)
      Printf.fprintf stderr "Error: %s\n" msg;
-     exit (-1)*)
+     exit (-1)
 
 let _ =
   let argc = Array.length Sys.argv in
-  if argc = 1 then
-    print_endline "usage: tp programme [fichier-pour-le-code] "
+  if (argc = 1) || (argc = 3) || (argc > 4) then
+    print_endline "usage: compileur programme [-o fichier-de sortie] "
   else
     begin
       (* si on ne passe pas à l'appel le nom du fichier dans lequel
        * ecrire le code produit, on utilise par défaut le fichier "out.txt"
        *)
-      let file_out = if argc = 3 then Sys.argv.(2) else "out.txt"
+      let file_out = if ((argc = 4) && (Sys.argv.(2) = "-o")) then Sys.argv.(3) else "out.txt"
       and file_in = Sys.argv.(1) in
       let chan_in = open_in file_in
       and chan_out = open_out file_out in
