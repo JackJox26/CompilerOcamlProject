@@ -86,7 +86,7 @@ lDeclVar:
 
 
 cible:
-  s=ID                                                  { ChampCible("this",s) }
+  s=ID                                                  { Var(s) }
 | s1=ID POINT s2=ID                                     { ChampCible(s1,s2) }       (*s1 -> this ou super*)
 | PARENT_G n=NOMCLASSE s1=ID PARENT_D POINT s2=ID       { ChampCibleCast(n,s1,s2) } (*s1 -> this ou super*)
 
