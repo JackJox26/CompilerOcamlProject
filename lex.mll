@@ -40,12 +40,12 @@ let LC = ( chiffre | lettre )
 
 (* l'analyseur lexical est decomposé ici en deux fonctions: l'une qui est
  * specialisée dans la reconnaissance des commentaires à la C, l'autre qui
- * traite les autres tokens à reconnaire. les deux fonctions vont coopérer.
+ * traite les autres tokens à reconnaitre. les deux fonctions vont coopérer.
  * Tout caractere lu dans le fichier doit être reconnu quelque part !
  *)
 rule
   token = parse (* a completer *)
-   minuscule LC * as id  { 
+    minuscule LC * as id { 
                         try 
                             Hashtbl.find keyword_table id
                         with
@@ -54,7 +54,7 @@ rule
                         }
 
 
-  |  majuscule LC * as nomclasse    {
+  | majuscule LC * as nomclasse    {
                                         NOMCLASSE nomclasse
                                     }
   | [' ''\t''\r']        { token lexbuf }     (* skip blanks *)
@@ -91,14 +91,12 @@ rule
   | '-' { MOINS }
   | '*' { MUL }
   | '/' { DIV }
-
   | '>' { OPERATEUR(Ast.PG) }
   | ">=" { OPERATEUR(Ast.PGE) }
   | '<' { OPERATEUR(Ast.PP) }
   | "<=" { OPERATEUR(Ast.PPE) }
   | '=' { OPERATEUR(Ast.EGAL) }
   | "<>" { OPERATEUR(Ast.NEGAL) }
-
   | '&' { CONCAT }
 
   | eof { EOF }

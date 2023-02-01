@@ -210,6 +210,7 @@ let rec traducteur_methode label methode hashtable = (*TODO*)
     
 and traducteur_bloc b hashtable = (*TODO*)
     ""
+
 (*générateur code du programme
     paramètre : p = ast du programme
                 ?(*A ajoute*) = la hashtable du traducteur pour stockage et acces des positions dans la pile*)
@@ -276,6 +277,7 @@ let traducteur_prog p (*hashtable à ajouter*) =
                 "START\n" ^
                 traducteur_bloc bl (*hshtable à ajouter*)
         
+
 *)
 
 (* tentative
@@ -317,6 +319,9 @@ let traducteur_prog p hash =
 
 
 *)
+
+
+
 (*Ancienne version
     List.iter (fun o -> "ALLOC " (*Pour chaque déclaration de type (classe ou objet isolé), allocation de sa table des méthodes dans le tas*)
     ^ match o.corpsObjet with 

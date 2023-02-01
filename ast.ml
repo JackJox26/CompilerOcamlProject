@@ -1,95 +1,84 @@
 type opType = 
-    PGE
-    |PG
-    |PPE
-    |PP
-    |EGAL
-    |NEGAL
+	  PGE
+	| PG
+	| PPE
+	| PP
+	| EGAL
+	| NEGAL
 
-type expType =
-	Id of string
-	|Cste of int
-	|Parent of expType
-	|Plus of (expType * expType)
-	|Moins of (expType * expType)
-	|Mult of (expType * expType)
-	|Div of (expType * expType)
-	|PlusU of expType
-	|MoinsU of expType
 
-type typeType = Type of string
+type typeType = string
 
-type declType = Decl of (string list * typeType)
 
-(* type cibleType = Result | *) 
+type paramType = (string * typeType)
+
+
+type exprType =
+	  Id of string
+	| Cste of int
+	| Str of string
+	| Cast of (string * exprType)
+	| Membre of (string * string)
+	| Instance of (string * exprType list)
+	| MethodeExpr of (exprType * string * exprType list)
+	| MethodeClasse of (typeType * string * exprType list)
+	| Plus of (exprType * exprType)
+	| Moins of (exprType * exprType)
+	| Mult of (exprType * exprType)
+	| Div of (exprType * exprType)
+	| Comp of (exprType * opType * exprType)
+	| Concat of (exprType * exprType)
+	| MoinsU of exprType
+
+
+type declType = (string list * typeType)
+
+
+type cibleType = 
+	  Var of string 
+	| ChampCible of (string * string)
+	| ChampCibleCast of (string * string * string)
+
 
 type instructionType = 
-	Exp of expType
-	|  Bloc of blocType 
-	(*| IfThenElse of (expType*instructionType*instructionType) *) 
+	  Expr of exprType
+	| Bloc of blocType 
+	| IfThenElse of (exprType*instructionType*instructionType)
 	| Return
-	| Affectation of (cibleType * expType)
+	| Affectation of (cibleType * exprType)
 
-and
-blocType = 
-	BlocLInst of instructionType list 
-	| BlocDecl of (declType list * instructionType list)
-	| Empty
+and blocType = (declType list * instructionType list)
 
 
+type champType = (bool * paramType)
 
 
-type paramType = Param of (string * typeType)
-
-type champsType = Champs of (boolean * paramType)
-
-
- (*
- type methodeCorps = Val of (typeType * expType) 
- 	| ResultType of (typeType * blocType) 
-	| ResultSimple of blocType
- *)
-
-(*
- type methodeType = {
-	nom : string;
-	listParam : paramType list;
+type methodeType = {
+	nomMethode : string;
+	listParamMethode : paramType list;
+	isOverrideMethode : bool;
 	typeRetour : typeType option;
-	isOverride : boolean;
-	corps : blocType;
-	methodeCorps : methodeCorps
- }
- *)
-
-(*
-type corpsType = Corps of (	champsType list * methodeType list)
-*)
-
-(*
-type heritageType = Heritage of { nom : string; listArgs : string list } | EmptyHeritage
-*)
-
-(*
-type classeType = 
-{	nom : string;
-	listParam : paramType list;
-	oHeritage : heritageType;
-	oConstruct : blocType;
-	corps : corpsType
-}
-*)
-
-
-type objetIsoleType = 
-{	nom : string;
-	oConstruct : blocType;
-	corps : corpsType
+	corpsMethode : blocType;
 }
 
 
-type objetType = 
-	(*Classe of classeType*)
-	| ObjetIsole of objetIsoleType
+type corpsType = (champType list * methodeType list)
 
-	
-type progType = Prog of (objetType list * blocType)
+
+type objetType = {
+	nomObjet : string;
+	estClasse : bool;
+	listParamClasse : paramType list;
+	oNomHeritage : typeType option;
+	listArgsHeritage : exprType list;
+	oConstructObjet : blocType option;
+	corpsObjet : corpsType
+}
+
+
+type progType = (objetType list * blocType)
+
+
+exception VC_Error of string
+exception RUN_Error of string
+exception MISC_Error of string
