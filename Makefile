@@ -1,5 +1,5 @@
 INTERFACES 			= parse.mli
-SOURCES    			= ast.ml parse.ml lex.ml eval.ml traducteur.ml main.ml
+SOURCES    			= ast.ml parse.ml lex.ml eval.ml main.ml
 SOURCES_TESTS_VC    = ast.ml eval.ml testVerifsContext.ml
 #GENERATED  		 = parse.ml parse.mli parse.automaton parse.conflicts
 GENERATED  			= lex.ml parse.ml parse.mli parse.automaton parse.conflicts
