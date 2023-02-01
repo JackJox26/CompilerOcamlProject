@@ -1,5 +1,5 @@
 object CptPoint { this.next := "r"; } is {
-  var next : String;
+  var next : Integer;
   def get() : Integer := this.next
   def incr() : Integer is { this.next := this.next + 1; result := this.next; }
 }
