@@ -259,11 +259,11 @@ let traducteur_prog p hashtbl =
                                                 Hashtbl.add hashtbl.adresse_tables_methodes o.nomObjet gpt; ptp;
                                                 "DUPN 1\n" ^
                                                 "PUSHA " ^ let (p,label) = (Hashtbl.find (Hashtbl.find hashtbl.methodes_types o.nomObjet) "constructeur") in label ^ "\n" ^
-                                                "STORE 0\n" ^
+                                                "STORE 0\n" ^ String.concat "" (
                                                 List.iter (fun m ->  "DUPN 1\n" ^
                                                                         "PUSHA " ^ let (p2,label2) = (Hashtbl.find (Hashtbl.find hashtbl.methodes_types o.nomObjet) m.nomMethode) in label2 ^ "\n" ^
                                                                         "STORE " ^ string_of_int (p2) ^ "\n" ^
-                                                                                                                                                                                ) ml
+                                                                                                                                                                                                        ) ml ) ^
                                                 (*CREATION OBJETS ISOLES*)
                                                 if o.isObjetIsole then
                                                     "ALLOC " ^ string_of_int (cl.length + 1) ^ "\n" ^
