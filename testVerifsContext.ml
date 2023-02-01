@@ -66,7 +66,7 @@ let printParamType (paramType) = printListParamType (fst paramType) ; printType 
 let printTabVars (tabVars:tabVars) = Hashtbl.iter (fun idVariable typeVariable -> printType typeVariable) tabVars
 
 
-let printTabMethodes (tabMethodes:tabMethodes)= Hashtbl.iter (fun idMethode typeParamReturn -> printParamType typeParamReturn ) tabMethodes
+let printTabMethodes (tabMethodes:tabMethodes)= Hashtbl.iter (fun idMethode typeParamReturn -> printListParamType typeParamReturn ) tabMethodes
 (*
 let printTabObjets tabObjets = Hashtbl.iter (fun (* TODO *)) tabObjets
 
