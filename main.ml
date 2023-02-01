@@ -20,15 +20,16 @@ let parse_with_error lexbuf file_in chan =
      * La valeur retournée par la production qui définit l'axiome renvoie une
      * valeur du type progType à définir dans ast.ml.
      *)
-    let truc = Parse.prog Lex.token lexbuf in
+    let programme = Parse.prog Lex.token lexbuf in
+    Eval.vc_prog programme ;
     print_newline ()
   with (* traite exception général ... *)
     Parse.Error -> (* levée par l'analyseur syntaxique *)
-    Printf.fprintf stderr "Syntax error at position %a\n" print_position lexbuf;
-    exit (-1)
-  (*| VC_Error msg ->
-     Printf.fprintf stderr "Erreur contextuelle: %s\n" msg;
-     exit (-1)*)
+      Printf.fprintf stderr "Syntax error at position %a\n" print_position lexbuf ;
+      exit (-1)
+  | VC_Error msg ->
+     Printf.fprintf stderr "Erreur contextuelle: %s\n" msg ;
+     exit (-1)
   (*| RUN_Error msg -> (* uniquement pour la version interprete *)
      Printf.fprintf stderr "Erreur à l'execution: %s\n" msg;
      exit (-1)*)
