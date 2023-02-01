@@ -1,3 +1,12 @@
+type opType = 
+	  PGE
+	| PG
+	| PPE
+	| PP
+	| EGAL
+	| NEGAL
+
+
 type typeType = string
 
 
@@ -12,11 +21,12 @@ type exprType =
 	| Membre of (string * string)
 	| Instance of (string * exprType list)
 	| MethodeExpr of (exprType * string * exprType list)
-	| MethodeLocal of (string * string * exprType list)
+	| MethodeClasse of (typeType * string * exprType list)
 	| Plus of (exprType * exprType)
 	| Moins of (exprType * exprType)
 	| Mult of (exprType * exprType)
 	| Div of (exprType * exprType)
+	| Comp of (exprType * opType * exprType)
 	| Concat of (exprType * exprType)
 	| MoinsU of exprType
 
@@ -26,7 +36,8 @@ type declType = (string list * typeType)
 
 type cibleType = 
 	  Var of string 
-	| ChampCible of (exprType * string)
+	| ChampCible of (string * string)
+	| ChampCibleCast of (string * string * string)
 
 
 type instructionType = 
@@ -50,17 +61,16 @@ type methodeType = {
 	corpsMethode : blocType;
 }
 
+
 type corpsType = (champType list * methodeType list)
-
-
-type heritageType = { nomHeritage : typeType; listArgsHeritage : exprType list }
 
 
 type objetType = {
 	nomObjet : string;
-	isObjetIsole : bool;
+	estClasse : bool;
 	listParamClasse : paramType list;
-	oHeritageClasse : heritageType option;
+	oNomHeritage : typeType option;
+	listArgsHeritage : exprType list;
 	oConstructObjet : blocType option;
 	corpsObjet : corpsType
 }
