@@ -60,7 +60,7 @@ let parse_with_error lexbuf file_in chan =
      exit (-1)
   | MISC_Error msg -> (* pour l'instant juste erreur lexicale *)
      Printf.fprintf stderr "Error: %s\n" msg;
-     exit (-1)
+     exit (-1)*)
 
 let _ =
   let argc = Array.length Sys.argv in
