@@ -354,8 +354,8 @@ let vc_lobjets lObjet tabObjets =
 (* ne retourne rien *)
 let vc_prog prog =
   let tabObjets = Hashtbl.create 10 in
-  let tabMethodesInt = Hashtbl.create 1 in
-  let tabMethodesStr = Hashtbl.create 2
+  let tabMethodesInt = Hashtbl.create 2 in
+  let tabMethodesStr = Hashtbl.create 3
   in
     Hashtbl.add tabMethodesInt "0_construct" (["Integer"], "Integer");
     Hashtbl.add tabMethodesInt "toString" ([], "String");
