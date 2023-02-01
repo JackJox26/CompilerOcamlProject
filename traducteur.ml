@@ -154,15 +154,31 @@ let traducteur_prog p (*hashtable à ajouter*) =
                 "init: " ^
                 List.iter (fun o -> "ALLOC " ^
                                     match o.corpsObjet with
-                                    |(_,ml) -> string_of_int (ml.length + 1) ^ "\n" ^
-                                    "DUPN 1\n" ^
-                                    "PUSHA " ^ let (p,label) = (find (find methodes_types o.nomObjet) "constructeur") in label ^ "\n" ^
-                                    "STORE 0\n" ^
-                                    List.iter (fun m ->  "DUPN 1\n" ^
-                                                            "PUSHA " ^ let (p2,label2) = (find (find methodes_types o.nomObjet) m.nomMethode) in label2 ^ "\n" ^
-                                                            "STORE " ^ string_of_int (p2) ^ "\n" ^
-                                                                                                                                                                    ) ml
-                                                                                                                                                                        ) l
+                                    |(cl,ml) -> string_of_int (ml.length + 1) ^ "\n" ^
+                                                add adresses_table_methode o.nomObjet gpt; ptp;
+                                                "DUPN 1\n" ^
+                                                "PUSHA " ^ let (p,label) = (find (find methodes_types o.nomObjet) "constructeur") in label ^ "\n" ^
+                                                "STORE 0\n" ^
+                                                List.iter (fun m ->  "DUPN 1\n" ^
+                                                                        "PUSHA " ^ let (p2,label2) = (find (find methodes_types o.nomObjet) m.nomMethode) in label2 ^ "\n" ^
+                                                                        "STORE " ^ string_of_int (p2) ^ "\n" ^
+                                                                                                                                                                                ) ml
+                                                (*CREATION OBJETS ISOLES*)
+                                                if o.isObjetIsole then
+                                                    "ALLOC " ^ string_of_int (cl.length + 1) ^ "\n" ^
+                                                    add adresses_objets o.nomObjet gpt; ptp;
+                                                    add type_objets o.nomObjet o.nomObjet;
+                                                    (*Affectation table méthodes*)
+                                                    "DUPN 1\n" ^ 
+                                                    "PUSHG " ^ string_of_int (adresses_table_methode o.nomObjet) ^ "\n" ^ 
+                                                    "STORE 0\n" ^
+                                                    
+                                                    (*Maj hashtable des champs*)
+                                                    add champs_types o.nomObjet Hashtbl.create 20;
+                                                    List.iteri(fun i c -> let (b,(n,t)) = c in add (find champs_types o.nomObjet) n (i+1)) cl;
+
+                                                    (*Appel constructeur sur l'objet*)
+                                                    "DUPN 1\nDUPN 1\nLOAD 0\nLOAD 0\nCALL\nPOPN 1\n" ^                                                                                                                                ) l
         
                 (*BLOC DU PROGRAMME*)
                 "START\n" ^
