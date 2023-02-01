@@ -59,7 +59,12 @@ let cmptITEp () = cmptITE := !cmptITE + 1
 let cmptITEm () = cmptITE := !cmptITE - 1
 let cmptITEg () = !cmptITE
 
+(*compteur nb etiquette pour les jumps avec methode d'accès et maj*)
+let cmptJump = ref 0
 
+let cmptJumpp () = cmptJump := !cmptJump + 1
+let cmptJumpm () = cmptJump := !cmptJump - 1
+let cmptJumpg () = !cmptJump
 
 let genLabelEti() =
     let e in
@@ -72,6 +77,12 @@ let genLabelITE() =
     i = "i" ^ string_of_int cmptITEg
     cmptITEp;
     i
+
+let genLabelJump() =
+let j in
+j = "j" ^ string_of_int cmptJumpg
+cmptJumpp;
+j
 
 let rec traducteur_expType t hash pt =
     match t with 
@@ -105,32 +116,83 @@ and traducteur_instructionType t hash pt =
                 hashtable = la hashtable du traducteur pour la visibilité des objets*)
 
 let traducteur_methode label methode hashtable = (*TODO*)
-    ""
-    ^ match methode with
-    |None ->
-    |_ ->
+    label ^ ": "
+    ^ traducteur_bloc methode.corpsMethode hashtable
     
+let traducteur_bloc b hashtable = (*TODO*)
 
 (*générateur code du programme
     paramètre : p = ast du programme
                 ?(*A ajoute*) = la hashtable du traducteur pour stockage et acces des positions dans la pile*)
 
-(*ATTENTION : où on écrit ? string ou print ? fichier en paramètre ? + hashtable des hashtables à ajouter en param et appelée lorsque prête*)
+(*ATTENTION : où on écrit ? 
+            string ou print ? fichier en paramètre ? 
+            + hashtable des hashtables à ajouter en param et appelée lorsque prête 
+            + override et heritage 
+            + initialisation avec constructeur =>DONE 
+            + compteur position
+            + peut-être créer objet structure d'une classe, sans état, dont tous les objets de la classe copieront à leur déclaration*)
 
-let traducteur_prog p (**hashtable à ajouter*) =
+let traducteur_prog p (*hashtable à ajouter*) =
     match p with
-    |(l,_) -> List.iter (fun o -> "ALLOC " 
-        ^ match o.corpsType with 
-        |(_,ml) -> add adresses_table_methode o.nomObjet gpt; ptp; 
-                add methodes_types o.nomObjet Hashtbl.create 20; 
-                let eti =  genLabelEti in 
-                add (find methodes_types o.nomObjet) "constructeur" (0,eti) ; 
-                traducteur_methode eti o.oConstructObjet (*hshtable à ajouter*); 
-                List.iteri (fun i m -> let eti2 = genLabelEti in add (find methodes_types o.nomObjet) m.nomMethode ((i+1),genLabelEti); (*Appel methode genMethode*)) ml; string_of_int (ml.length + 1) ^ "\n" 
-        ^ if o.isObjetIsole then "ALLOC "  (*! if pas au bon endroit*)
-        ^ match o.corpsType with
-            |(cl,_) -> add adresses_objets o.nomObjet gpt; ptp; add type_objets o.nomObjet o.nomObjet; string_of_int (cl.length + 1) ^ "\n" 
-                ^ "PUSHG " ^ ... ^ "\n" ^ "PUSHG " ^ ... ^ "\n" ^ ... ^ "STORE 0\n") l
+    |(l,bl) -> (*CREATION DU CODE DES METHODES*)  
+                "JUMP init\n"  ^ 
+                List.iter (fun o -> match o.corpsObjet with
+                                    |(_,ml) -> add methodes_types o.nomObjet Hashtbl.create 20;
+                                                (*constructeur de l'objet*)
+                                                let eti =  genLabelEti in 
+                                                add (find methodes_types o.nomObjet) "constructeur" (0,eti) ;
+                                                traducteur_methode eti o.oConstructObjet (*hshtable à ajouter*) ^
+                                                
+                                                (*chaque méthode de l'objet*)
+                                                List.iteri (fun i m ->  let eti2 = genLabelEti in 
+                                                                        add (find methodes_types o.nomObjet) m.nomMethode ((i+1),eti2);
+                                                                        traducteur_methode eti2 m.corpsMethode (*hshtable à ajouter*) ^
+                                                                                                                                        ) ml 
+                                                                                                                                            ) l ^
+                (*CREATION DES TABLES DES METHODES*)                                                                                                                            
+                "init: " ^
+                List.iter (fun o -> "ALLOC " ^
+                                    match o.corpsObjet with
+                                    |(_,ml) -> string_of_int (ml.length + 1) ^ "\n" ^
+                                    "DUPN 1\n" ^
+                                    "PUSHA " ^ let (p,label) = (find (find methodes_types o.nomObjet) "constructeur") in label ^ "\n" ^
+                                    "STORE 0\n" ^
+                                    List.iter (fun m ->  "DUPN 1\n" ^
+                                                            "PUSHA " ^ let (p2,label2) = (find (find methodes_types o.nomObjet) m.nomMethode) in label2 ^ "\n" ^
+                                                            "STORE " ^ string_of_int (p2) ^ "\n" ^
+                                                                                                                                                                    ) ml
+                                                                                                                                                                        ) l
+        
+                (*BLOC DU PROGRAMME*)
+                "START\n" ^
+                traducteur_bloc bl (*hshtable à ajouter*)
+        
+
+
+
+(*Ancienne version
+    List.iter (fun o -> "ALLOC " (*Pour chaque déclaration de type (classe ou objet isolé), allocation de sa table des méthodes dans le tas*)
+    ^ match o.corpsObjet with 
+    |(_,ml) -> string_of_int (ml.length + 1) ^ "\n" ^
+            add adresses_table_methode o.nomObjet gpt; ptp; 
+            add methodes_types o.nomObjet Hashtbl.create 20; 
+            let eti =  genLabelEti in (*1ère méthode constructeur*)
+            add (find methodes_types o.nomObjet) "constructeur" (0,eti) ;
+            let jumpi = genLabelJump in
+            "JUMP " ^ jumpi ^ "\n" ^ 
+            traducteur_methode eti o.oConstructObjet (*hshtable à ajouter*);  (*Ajout du code du constructeur avec son label*) (*Voir si pas mettre ailleurs/ risque pas de s'exe*)
+            jumpi ^ ": " ^ "PUSHG " ^ string_of_int(find adresses_table_methode o.nomObjet) ^ ptp; "\nPUSHA " ^ eti ^ ptp; "\nSTORE 0" ^ ptm; ptm;
+            List.iteri (fun i m -> let eti2 = genLabelEti in add (find methodes_types o.nomObjet) m.nomMethode ((i+1),eti2); let jumpi2 = genLabelJump in "\nJUMP " ^ jumpi2 ^ "\n" ^;traducteur_methode eti2 m.corpsMethode (*hshtable à ajouter*); jumpi2 ^ ": " ^"PUSHG " ^ string_of_int(find adresses_table_methode o.nomObjet) ^ ptp; "\nPUSHA " ^ eti2 ^ ptp; "\nSTORE "^ (i+1) ^ ptm; ptm;) ml;  (*Ajout du code de chaque méthode avec son label*)
+    if o.isObjetIsole then "\nALLOC "
+    ^ match o.corpsObjet with
+        |(cl,_) -> add adresses_objets o.nomObjet gpt; ptp; add type_objets o.nomObjet o.nomObjet; string_of_int (cl.length + 1) ^ "\n" 
+            ^ "DUPN 1 " ^ "\n" ^ "PUSHG " ^ string_of_int (adresses_table_methode o.nomObjet) ^ "\n" ^ "STORE 0\n" ^ 
+            add champs_types o.nomObjet Hashtbl.create 20;
+            List.iteri(fun i c -> let (b,(n,t)) = c in add (find champs_types o.nomObjet) n (i+1)) cl; 
+            "DUPN 1\nDUPN 1\nLOAD 0\nLOAD 0\nCALL\n" (*Exe le constructeur*)
+    ) l ^ "START\n" ^ traducteur_bloc bl (*hshtable à ajouter*) (*Code du bloc*)
+*)
     
 (*
 Tout cramer et reprendre a zero
