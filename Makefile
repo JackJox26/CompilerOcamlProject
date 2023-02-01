@@ -1,7 +1,8 @@
-INTERFACES = parse.mli
-SOURCES    = ast.ml parse.ml lex.ml eval.ml main.ml
-#GENERATED  = parse.ml parse.mli parse.automaton parse.conflicts
-GENERATED  = lex.ml parse.ml parse.mli parse.automaton parse.conflicts 
+INTERFACES 			= parse.mli
+SOURCES    			= ast.ml parse.ml lex.ml eval.ml traducteur.ml main.ml
+SOURCES_TESTS_VC    = ast.ml eval.ml testVerifsContext.ml
+#GENERATED  		 = parse.ml parse.mli parse.automaton parse.conflicts
+GENERATED  			= lex.ml parse.ml parse.mli parse.automaton parse.conflicts
 
 testLex : parse.mli lex.ml testLex.ml ast.mli
 	ocamlc -c ast.ml
@@ -23,5 +24,10 @@ compilateur: parse.mli $(SOURCES)
 	ocamlc $(INTERFACES)
 	ocamlc -o compilateur $(SOURCES)
 
+testsVerifsContext: parse.mli $(SOURCES)
+	ocamlc -c ast.ml
+	ocamlc $(INTERFACES)
+	ocamlc -o testsVerifsContext $(SOURCES_TESTS_VC)
+
 clean:
-	rm -rf  tp testLex compilateur *.o *.cmi *.cmo *.cmx *~ $(GENERATED) out.txt
+	rm -rf  tp testLex compilateur testsVerifsContext *.o *.cmi *.cmo *.cmx *~ $(GENERATED) out.txt
