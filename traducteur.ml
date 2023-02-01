@@ -215,7 +215,7 @@ let rec traducteur_methode label methode hashtable = (*TODO*)
                 methode = arbre ast de la methode
                 hashtable = la hashtable du traducteur pour la visibilité des objets*)
 
-let traducteur_bloc b hashtable = "" (*TODO*)
+let traducteur_bloc b hashtable = "" (*TODO*) (*/!\option : match with None*)
 
 
 
@@ -265,7 +265,7 @@ let traducteur_prog p hashtbl =
                                                                         "STORE " ^ string_of_int (p2) ^ "\n" ^
                                                                                                                                                                                                         ) ml ) ^
                                                 (*CREATION OBJETS ISOLES*)
-                                                if o.isObjetIsole then
+                                                if not o.estClasse then
                                                     "ALLOC " ^ string_of_int (cl.length + 1) ^ "\n" ^
                                                     Hashtbl.add hashtbl.adresse_objets o.nomObjet gpt; ptp;
                                                     Hashtbl.add hashtbl.type_objets o.nomObjet o.nomObjet;
