@@ -24,6 +24,8 @@ class Point(xc: Integer, yc: Integer)
 
   def setName(newName: String) is { this.name := newName; }
 
+  def get() : Integer := CptPoint.get()
+
   def isCloned() : Integer := this.hasClone <> 0
 
   def move(dx: Integer, dy: Integer, verbose: Integer) : Point is {
@@ -115,7 +117,7 @@ is {
 }
 
 class PointColore(xc: Integer, yc:Integer, c: Couleur) extends Point(xc, yc)
-  { this.couleur := c; this.setName("PC_" & index.toString()); }
+  { this.couleur := c; this.setName("PC_" & this.index.toString()); }
   is {
    var auto couleur : Couleur;
 
@@ -197,12 +199,12 @@ object Test is {
   dp := new DefaultPoint();
   p1.print(0);
   p2.print(0); 
-  p2.move(p1.getx(), p1.gety(), 0);
+  p2.move(p1.x(), p1.y(), 0);
   p2.print(0);
   o.print(0);
   o.setName("origine");
   o.print(true);
-  p2.move(p1.getx()-2*5-3, p1.gety(), 0);
+  p2.move(p1.x()-2*5-3, p1.y(), 0);
   p2.print(true);
 
   "On va essayer le clonage:".println();
