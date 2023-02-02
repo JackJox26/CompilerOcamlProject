@@ -1,4 +1,4 @@
-object CptPoint { this.next := "r"; } is {
+object CptPoint { this.next := 0; } is {
   var next : Integer;
   def get() : Integer := this.next
   def incr() : Integer is { this.next := this.next + 1; result := this.next; }
@@ -51,7 +51,7 @@ class Point(xc: Integer, yc: Integer)
    /* On memorise le dernier clone construit à partir de cet objet
     * si on voulait on pourrait le chainer a la fin de la liste des clones
     */
-    this.clone := new Point(this.x, this.y, this.name & "'");
+    this.clone := new Point(this.x, this.y);
     result := this.clone;
   }
 
@@ -115,7 +115,7 @@ is {
 }
 
 class PointColore(xc: Integer, yc:Integer, c: Couleur) extends Point(xc, yc)
-  { couleur := c; this.setName("PC_" & index.toString()); }
+  { this.couleur := c; this.setName("PC_" & index.toString()); }
   is {
    var auto couleur : Couleur;
 
@@ -130,7 +130,7 @@ class PointColore(xc: Integer, yc:Integer, c: Couleur) extends Point(xc, yc)
            /* ci-dessous x et y sont les champs herites de Point */
        := new PointColore(this.x, this.y, this.couleur)
 
-   def estGris() : Integer := this.coul.estGris()
+   def estGris() : Integer := this.couleur.estGris()
 
    def override print(verbose : Integer) is {
       if verbose then "Inside PointColore::print".println(); else { }
