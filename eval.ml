@@ -1,21 +1,5 @@
 open Ast
 
-let rec toString_lType lType =
-  match lType with
-    | [] -> ""
-    | [t] -> t
-    | t::r -> t ^ ", " ^ toString_lType r
-
-let printTabVars tabVars = Hashtbl.iter (
-  fun nomVar typeVar ->
-    print_endline (nomVar^"-> "^typeVar)
-  ) tabVars
-
-  let printTabMethodes tabMethodes = Hashtbl.iter (
-    fun nomMethode (lParamType, typeRetour) ->
-      print_endline (nomMethode^"("^(toString_lType lParamType)^") -> " ^ typeRetour)
-    ) tabMethodes
-
 (*
     (*nomClasse*)
     type typeType = string
@@ -74,7 +58,7 @@ let methodeMembreGetType nomObjet nomMethode paramMethode tabObjets arborescence
     in
       let rec mmgt_rec cetteObjet =
         try match (Hashtbl.find tabObjets cetteObjet) with
-          | (hopt, tab_m, _) -> print_endline (cetteObjet^" : Recherche de methode : "^nomMethode^", parmis :"); printTabMethodes tab_m ;
+          | (hopt, tab_m, _) ->
               try matchSignatureGetType (Hashtbl.find_all tab_m nomMethode)
               with
                 Not_found | Not_here ->
