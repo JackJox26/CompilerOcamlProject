@@ -1,5 +1,21 @@
 open Ast
 
+let rec toString_lType lType =
+  match lType with
+    | [] -> ""
+    | [t] -> t
+    | t::r -> t ^ ", " ^ toString_lType r
+
+let printTabVars tabVars = Hashtbl.iter (
+  fun nomVar typeVar ->
+    print_endline (nomVar^"-> "^typeVar)
+  ) tabVars
+
+  let printTabMethodes tabMethodes = Hashtbl.iter (
+    fun nomMethode (lParamType, typeRetour) ->
+      print_endline (nomMethode^"("^(toString_lType lParamType)^") -> " ^ typeRetour)
+    ) tabMethodes
+
 (*
     (*nomClasse*)
     type typeType = string
@@ -11,7 +27,7 @@ open Ast
 
     (*nomMethode : lParamType, typeRetour*)
     type tabMethodes = (string, string list * typeType) Hashtbl.t
-    (*dont methode 0_construct qui correspond  aux constructeurs de la classe*)
+    (*dont methode 0_constructeur qui correspond  aux constructeurs de la classe*)
 
     (*nomObjet : (heritageClasseParente, tabMethodesMembres, tabChamps)*)
     type tabObjets = (string, (typeType option * tabMethodes * tabVars)) Hashtbl.t
@@ -56,21 +72,22 @@ let methodeMembreGetType nomObjet nomMethode paramMethode tabObjets arborescence
             else
               matchSignatureGetType r
     in
-      let rec mmgt_rec c_rec =
-        try match (Hashtbl.find tabObjets c_rec) with
-          | (hopt, tab_m, _) ->
+      let rec mmgt_rec cetteObjet =
+        try match (Hashtbl.find tabObjets cetteObjet) with
+          | (hopt, tab_m, _) -> print_endline (cetteObjet^" : Recherche de methode : "^nomMethode^", parmis :"); printTabMethodes tab_m ;
               try matchSignatureGetType (Hashtbl.find_all tab_m nomMethode)
               with
                 Not_found | Not_here ->
-                  match hopt with
+                  if(nomMethode="0_constructeur") then raise (VC_Error (arboVC, "les parametres ne correspondent pas au constructeur de "^nomObjet))
+                  else match hopt with
                     | Some(h) -> mmgt_rec h
-                    | None -> raise (VC_Error (arboVC, "pas de methode avec cette signature, dans l'objet' : " ^ nomObjet ^ if(nomObjet!=c_rec) then (" (ni dans ces classes heritees jusqu'a : " ^ c_rec ^ ")") else ""))
-        with Not_found -> raise (VC_Error (arboVC, "objet non declaree : " ^ c_rec))
+                    | None -> raise (VC_Error (arboVC, "pas de methode avec cette signature "^nomMethode^"(...), dans l'objet : " ^ nomObjet ^ if(nomObjet!=cetteObjet) then (" (ni dans ces classes heritees jusqu'a : " ^ cetteObjet ^ ")") else ""))
+        with Not_found -> raise (VC_Error (arboVC, "objet non declaree : " ^ cetteObjet))
       in mmgt_rec nomObjet
 
 (* retourne false s'il n'existe pas de methode avec cette signature *)
 let methodeMembreExists nomObjet nomMethode paramMethode tabObjets arborescenceVC = let arboVC = "methodeMembreExists"::arborescenceVC in
-  try (methodeMembreGetType nomObjet nomMethode paramMethode tabObjets arboVC ; true)
+  try (let _ = methodeMembreGetType nomObjet nomMethode paramMethode tabObjets arboVC in true)
   with VC_Error(_) -> false
 
 
@@ -109,7 +126,7 @@ let vc_type nomObjet tabObjets arborescenceVC = let arboVC = "vc_type"::arboresc
     try (match Hashtbl.find tabObjets nomObjet with (_, tab_m, _) -> tab_m)
     with Not_found -> raise (VC_Error (arboVC, "classe non declaree : " ^ nomObjet))
   in
-    try (Hashtbl.find tabMethodes "0_construct") ; nomObjet
+    try (Hashtbl.find tabMethodes "0_constructeur") ; nomObjet
     with Not_found -> raise (VC_Error (arboVC, "n'est pas un type car c'est un objet isole : " ^ nomObjet))
 
 
@@ -162,7 +179,7 @@ let rec vc_expr expr tabVars tabObjets arborescenceVC = let arboVC = "vc_expr"::
               with Not_found -> raise (VC_Error (arboVC, "super appele en dehors d'une classe ayant un parent !"))
             else raise (VC_Error (arboVC, "impossible d'acceder a un champ externe (limite a this ou super) : " ^ scope ^ "." ^ nomChamp))
         | Instance(n,l) ->
-            methodeMembreGetType n "0_construct" (vc_lExpr l tabVars tabObjets arboVC) tabObjets arboVC
+            methodeMembreGetType n "0_constructeur" (vc_lExpr l tabVars tabObjets arboVC) tabObjets arboVC
         | MethodeExpr(e,s,l) ->
             methodeMembreGetType (vc_e e) s (vc_lExpr l tabVars tabObjets arboVC) tabObjets arboVC
         | MethodeClasse(n,s,l) ->
@@ -215,31 +232,40 @@ let vc_cible cible tabVars tabObjets arborescenceVC = let arboVC = "vc_cible"::a
         vc_expr (Membre(s1, s2)) tabVars tabObjets arboVC
 
 
-(* ne retourne rien *)
+(* return true si le resultat a ete affecte *)
 let rec vc_instruc instruc tabVars tabObjets arborescenceVC = let arboVC = "vc_instruc"::arborescenceVC in
   let rec vc_i i_rec =
     match i_rec with
-      | Expr(e) -> let _ = vc_expr e tabVars tabObjets arboVC in ()
+      | Expr(e) -> let _ = vc_expr e tabVars tabObjets arboVC in false
       | Bloc(b) -> vc_bloc b tabVars tabObjets arboVC
-      | Return -> ()
-      | IfThenElse(e, i1, i2) -> let _ = vc_expr e tabVars tabObjets arboVC in vc_i i1 ; vc_i i2
+      | Return -> false
+      | IfThenElse(e, i1, i2) -> let _ = vc_expr e tabVars tabObjets arboVC in (vc_i i1) && (vc_i i2)
       | Affectation(c, e) ->
           let typeChamp = vc_cible c tabVars tabObjets arboVC in
           let typeExpr = vc_expr e tabVars tabObjets arboVC
           in
-            if (typeChamp=typeExpr) then ()
-            else raise (VC_Error (arboVC, "le type du champ (" ^ typeChamp ^ ") ne correspond pas a celui de la valeur affecte (" ^ typeExpr ^ ")"))
+            let rec typeCompatible a b =
+              if(a=b) then true
+              else
+                try match (Hashtbl.find tabObjets b) with (h_opt, _, _) ->
+                  match h_opt with
+                    | Some(h) -> typeCompatible a h
+                    | None -> false
+                with Not_found -> false
+            in
+              if (typeCompatible typeChamp typeExpr) then match c with Var(s) -> (s="result") | _ -> false
+              else raise (VC_Error (arboVC, "le type du champ (" ^ typeChamp ^ ") n'est pas compatible modulo heritage avec celui de la valeur affecte (" ^ typeExpr ^ ")"))
   in vc_i instruc
 
-(* ne retourne rien *)
+(* return true si le resultat a ete affecte *)
 and vc_lInstruc linstruc tabVars tabObjets arborescenceVC = let arboVC = "vc_lInstruc"::arborescenceVC in
   let rec vc_li li_rec =
     match li_rec with
-      | [] -> ()
-      | i::l -> (vc_instruc i tabVars tabObjets arboVC) ; (vc_li l)
+      | [] -> false
+      | i::l -> (vc_instruc i tabVars tabObjets arboVC) || (vc_li l)
   in vc_li linstruc
 
-(* ne retourne rien *)
+(* return true si le resultat a ete affecte *)
 and vc_bloc bloc tabVars tabObjets arborescenceVC = let arboVC = "vc_bloc"::arborescenceVC in
   match bloc with (ld, li) -> vc_lInstruc li (vc_lDecl ld tabVars tabObjets arboVC) tabObjets arboVC
 
@@ -251,10 +277,11 @@ let vc_champ champ tabVars tabObjets arborescenceVC = let arboVC = "vc_champ"::a
       in
         match (Hashtbl.find tabObjets thisObjet) with (prev_h, tabMethodes, tabChamps) ->
           match p with (nomChamp, typeChamp) ->
+            (if(nomChamp="result" || nomChamp="this" || nomChamp="super" || nomChamp="return") then raise (VC_Error(arboVC, "Nom de champ invalide : "^nomChamp)));
             (if (a) then Hashtbl.add tabMethodes nomChamp ([], typeChamp) ); (*Methode d'acces du nom du champs*)
             Hashtbl.add tabChamps nomChamp typeChamp ;
             Hashtbl.replace tabObjets thisObjet (prev_h, tabMethodes, tabChamps) ; tabObjets
-    with Not_found -> raise (VC_Error (arboVC, "le champ n'est pas dans un objet"))
+    with Not_found -> raise (VC_Error (arboVC, "le champ n'est pas appele depuis un objet"))
 
 (* retourne tabObjets actualise avec les variables et leur methode automatiquement cree la cas echeant *)
 let vc_lChamp lChamp tabVars tabObjets arborescenceVC = let arboVC = "vc_lChamp"::arborescenceVC in
@@ -266,10 +293,10 @@ let vc_lChamp lChamp tabVars tabObjets arborescenceVC = let arboVC = "vc_lChamp"
 
 
 (* retourne tabObjets actualise avec la methode cree *)
-let vc_methode methode tabVars tabObjets arborescenceVC = let arboVC = "vc_methode"::arborescenceVC in
+let addMethode methode tabVars tabObjets arborescenceVC = let arboVC = "addMethode"::arborescenceVC in
   let thisObjet = (Hashtbl.find tabVars "this") in
   let listeTypeParam = List.map (fun (nomParam, typeParam) -> typeParam) methode.listParamMethode in
-  let typeRetour = match methode.typeRetour with Some(tr) -> Hashtbl.add tabVars "result" tr ; vc_type tr tabObjets arboVC | None -> "Void"
+  let typeRetour = match methode.typeRetour with Some(tr) -> vc_type tr tabObjets arboVC | None -> "Void"
   in
     (if (methode.isOverrideMethode) then
       let prevTypeRetour = methodeMembreGetType thisObjet methode.nomMethode listeTypeParam tabObjets arboVC
@@ -280,17 +307,35 @@ let vc_methode methode tabVars tabObjets arborescenceVC = let arboVC = "vc_metho
       match (Hashtbl.find tabObjets thisObjet) with (prev_h, tabMethodes, prev_tabChamps) ->
         if (methodeMembreExists thisObjet methode.nomMethode listeTypeParam tabObjets arboVC) then
           raise (VC_Error (arboVC, "une methode est deja definit avec cette signature dans ce scope"))
-        else Hashtbl.add tabMethodes methode.nomMethode (listeTypeParam, typeRetour);
-        Hashtbl.replace tabObjets thisObjet (prev_h, tabMethodes, prev_tabChamps) ; ()
-    ) ; vc_bloc methode.corpsMethode (vc_lParam methode.listParamMethode tabVars tabObjets arboVC) tabObjets arboVC ; tabObjets
+        else
+          (Hashtbl.add tabMethodes methode.nomMethode (listeTypeParam, typeRetour); Hashtbl.replace tabObjets thisObjet (prev_h, tabMethodes, prev_tabChamps))
+    ) ; tabObjets
+
+(* retourne tabObjets actualise avec la methode cree *)
+let vc_methode methode tabVars tabObjets arborescenceVC = let arboVC = ("vc_methode("^methode.nomMethode^")")::arborescenceVC in
+  match methode.typeRetour with 
+    | Some(typeResultAttendu) ->
+        Hashtbl.add tabVars "result" typeResultAttendu ;
+        if (vc_bloc methode.corpsMethode (vc_lParam methode.listParamMethode tabVars tabObjets arboVC) tabObjets arboVC) then ()
+        else raise(VC_Error(arboVC, "pas de resultat retourne alors que le type : "^typeResultAttendu^" ; est attendu dans la methode : "^methode.nomMethode))
+    | None ->
+        let _ = vc_bloc methode.corpsMethode (vc_lParam methode.listParamMethode tabVars tabObjets arboVC) tabObjets arboVC in ()
+  
 
 (* retourne tabObjets actualise avec les methodes crees *)
 let vc_lMethode lMethode tabVars tabObjets arborescenceVC = let arboVC = "vc_lMethode"::arborescenceVC in
-  let rec vc_lm lm tabObjets_rec =
+  let rec add_lm lm tabObjets_rec =
     match lm with
       | [] -> tabObjets_rec
-      | m::l -> vc_lm l (vc_methode m tabVars tabObjets_rec arboVC)
-  in vc_lm lMethode tabObjets
+      | m::l -> add_lm l (addMethode m tabVars tabObjets_rec arboVC)
+  in
+    let nouv_tabObjets = add_lm lMethode tabObjets
+    in
+      let rec vc_lm lm =
+        match lm with
+          | [] -> ()
+          | m::l -> (vc_methode m tabVars nouv_tabObjets arboVC) ; vc_lm l 
+      in vc_lm lMethode ; nouv_tabObjets
 
 
 (* retourne tabObjets actualise *)
@@ -300,7 +345,7 @@ let vc_corpsObjet corpsObjet tabVars tabObjets arborescenceVC = let arboVC = "vc
 
 
 (* retourne tabObjets actualise *)
-let vc_objet objet tabObjets arborescenceVC = let arboVC = "vc_objet"::arborescenceVC in
+let vc_objet objet tabObjets arborescenceVC = let arboVC = ("vc_objet("^objet.nomObjet^")")::arborescenceVC in
   try let _ = (Hashtbl.find tabObjets objet.nomObjet) in raise (VC_Error (arboVC, "le nom d'un objet ne peut pas etre reutilise : " ^ objet.nomObjet))
   with Not_found ->
     let tabVars = vc_lParam objet.listParamClasse (Hashtbl.create 20) tabObjets arboVC in
@@ -314,19 +359,19 @@ let vc_objet objet tabObjets arborescenceVC = let arboVC = "vc_objet"::arboresce
               | None -> ()
               | Some(h) -> 
                 begin 
-                  (if(methodeMembreExists h "0_construct" (vc_lExpr objet.listArgsHeritage tabVars tabObjets arboVC) tabObjets arboVC) then ()
+                  (if(methodeMembreExists h "0_constructeur" (vc_lExpr objet.listArgsHeritage tabVars tabObjets arboVC) tabObjets arboVC) then ()
                   else raise (VC_Error (arboVC, "impossible d'herite de l'objet avec ces arguments de construction : " ^ h))) ;
                   Hashtbl.add tabVars "super" h
                 end
           end ;
-          Hashtbl.add tabMethodes "0_construct" ((List.map (fun (_, t) -> t) objet.listParamClasse), objet.nomObjet)
+          Hashtbl.add tabMethodes "0_constructeur" ((List.map (fun (_, t) -> t) objet.listParamClasse), objet.nomObjet)
       end ;
       Hashtbl.add tabObjets objet.nomObjet (objet.oNomHeritage, tabMethodes, Hashtbl.create 20) ;
       let nouv_tabObjets = vc_corpsObjet objet.corpsObjet tabVars tabObjets arboVC
       in
         match objet.oConstructObjet with
         | None -> nouv_tabObjets
-        | Some(constructObjet) -> vc_bloc constructObjet tabVars nouv_tabObjets arboVC ; nouv_tabObjets
+        | Some(constructObjet) -> let _ = vc_bloc constructObjet tabVars nouv_tabObjets arboVC in nouv_tabObjets
 
 (* retourne tabObjets actualise *)
 let vc_lobjets lObjet tabObjets = let arboVC = ["vc_lobjets"] in
@@ -340,14 +385,17 @@ let vc_lobjets lObjet tabObjets = let arboVC = ["vc_lobjets"] in
 (* ne retourne rien *)
 let vc_prog prog =
   let tabObjets = Hashtbl.create 10 in
+  let tabMethodesVoid = Hashtbl.create 1 in
   let tabMethodesInt = Hashtbl.create 2 in
   let tabMethodesStr = Hashtbl.create 3
   in
-    Hashtbl.add tabMethodesInt "0_construct" (["Integer"], "Integer");
+    Hashtbl.add tabMethodesVoid "0_constructeur" ([], "Void");
+    Hashtbl.add tabMethodesInt "0_constructeur" (["Integer"], "Integer");
     Hashtbl.add tabMethodesInt "toString" ([], "String");
-    Hashtbl.add tabMethodesStr "0_construct" (["String"], "String");
+    Hashtbl.add tabMethodesStr "0_constructeur" (["String"], "String");
     Hashtbl.add tabMethodesStr "print" ([], "Void");
     Hashtbl.add tabMethodesStr "println" ([], "Void");
+    Hashtbl.add tabObjets "Void" (None, tabMethodesVoid, (Hashtbl.create 0));
     Hashtbl.add tabObjets "Integer" (None, tabMethodesInt, (Hashtbl.create 0));
     Hashtbl.add tabObjets "String" (None, tabMethodesStr, (Hashtbl.create 0));
-    match prog with (l,b) -> vc_bloc b (Hashtbl.create 10) (vc_lobjets l tabObjets) []
+    match prog with (l,b) -> let _ = vc_bloc b (Hashtbl.create 10) (vc_lobjets l tabObjets) [] in ()
