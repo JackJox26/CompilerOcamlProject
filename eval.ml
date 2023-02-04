@@ -253,28 +253,6 @@ and vc_lInstruc linstruc tabVars tabObjets arborescenceVC = let arboVC = "vc_lIn
 and vc_bloc bloc tabVars tabObjets arborescenceVC = let arboVC = "vc_bloc"::arborescenceVC in
   match bloc with (ld, li) -> vc_lInstruc li (vc_lDecl ld tabVars tabObjets arboVC) tabObjets arboVC
 
-(* retourne tabObjets actualises avec la variable et la methode automatiquement cree la cas echeant *)
-let vc_champ champ tabVars tabObjets arborescenceVC = let arboVC = "vc_champ"::arborescenceVC in
-  match champ with (a,p) ->
-    try
-      let thisObjet = (Hashtbl.find tabVars "this")
-      in
-        match (Hashtbl.find tabObjets thisObjet) with (prev_h, tabMethodes, tabChamps) ->
-          match p with (nomChamp, typeChamp) ->
-            (if(nomChamp="result" || nomChamp="this" || nomChamp="super" || nomChamp="return") then raise (VC_Error(arboVC, "Nom de champ invalide : "^nomChamp)));
-            (if (a) then Hashtbl.add tabMethodes nomChamp ([], typeChamp) ); (*Methode d'acces du nom du champs*)
-            Hashtbl.add tabChamps nomChamp typeChamp ;
-            Hashtbl.replace tabObjets thisObjet (prev_h, tabMethodes, tabChamps) ; tabObjets
-    with Not_found -> raise (VC_Error (arboVC, "le champ n'est pas appele depuis un objet"))
-
-(* retourne tabObjets actualise avec les variables et leur methode automatiquement cree la cas echeant *)
-let vc_lChamp lChamp tabVars tabObjets arborescenceVC = let arboVC = "vc_lChamp"::arborescenceVC in
-  let rec vc_lc lc tabObjets_rec =
-    match lc with
-      | [] -> tabObjets_rec
-      | ch::l -> vc_lc l (vc_champ ch tabVars tabObjets_rec arboVC)
-  in vc_lc lChamp tabObjets
-
 
 (* retourne tabObjets actualise avec la methode cree *)
 let addMethode methode tabVars tabObjets arborescenceVC = let arboVC = "addMethode"::arborescenceVC in
@@ -283,10 +261,13 @@ let addMethode methode tabVars tabObjets arborescenceVC = let arboVC = "addMetho
   let typeRetour = match methode.typeRetour with Some(tr) -> vc_type tr tabObjets arboVC | None -> "Void"
   in
     (if (methode.isOverrideMethode) then
-      let prevTypeRetour = methodeMembreGetType thisObjet methode.nomMethode listeTypeParam tabObjets arboVC
+      try let classeParente = (Hashtbl.find tabVars "super")
       in
-        if(prevTypeRetour=typeRetour) then ()
-        else raise (VC_Error (arboVC, "une methode Override doit avoir la même signature et le meme type de retour"))
+        let prevTypeRetour = methodeMembreGetType classeParente methode.nomMethode listeTypeParam tabObjets arboVC
+        in
+          if(prevTypeRetour=typeRetour) then ()
+          else raise (VC_Error (arboVC, "une methode Override doit avoir la même signature et le meme type de retour"))
+      with Not_found -> raise(VC_Error(arboVC, "une methode Override doit etre defini pour une classe ayant une classe parente"))
     else
       match (Hashtbl.find tabObjets thisObjet) with (prev_h, tabMethodes, prev_tabChamps) ->
         if (methodeMembreExists thisObjet methode.nomMethode listeTypeParam tabObjets arboVC) then
@@ -320,6 +301,33 @@ let vc_lMethode lMethode tabVars tabObjets arborescenceVC = let arboVC = "vc_lMe
           | [] -> ()
           | m::l -> (vc_methode m tabVars nouv_tabObjets arboVC) ; vc_lm l 
       in vc_lm lMethode ; nouv_tabObjets
+
+
+(* retourne tabObjets actualises avec la variable et la methode automatiquement cree la cas echeant *)
+let vc_champ champ tabVars tabObjets arborescenceVC = let arboVC = "vc_champ"::arborescenceVC in
+  match champ with (a,p) ->
+    try
+      let thisObjet = (Hashtbl.find tabVars "this")
+      in
+        match p with (nomChamp, typeChamp) ->
+          (if(nomChamp="result" || nomChamp="this" || nomChamp="super" || nomChamp="return") then raise (VC_Error(arboVC, "Nom de champ invalide : "^nomChamp)));
+            let nouv_tabObjets = 
+              if (a) then
+                addMethode {nomMethode=nomChamp ; listParamMethode=[] ; isOverrideMethode=false ; typeRetour=Some(typeChamp) ; corpsMethode=([],[Affectation(Var("result"),Membre("this",nomChamp))]) } tabVars tabObjets arboVC (*Methode d'acces du nom du champs*)
+              else tabObjets
+            in
+              match (Hashtbl.find nouv_tabObjets thisObjet) with (prev_h, tabMethodes, tabChamps) ->
+                Hashtbl.add tabChamps nomChamp typeChamp ;
+                Hashtbl.replace nouv_tabObjets thisObjet (prev_h, tabMethodes, tabChamps) ; nouv_tabObjets
+    with Not_found -> raise (VC_Error (arboVC, "le champ n'est pas appele depuis un objet"))
+
+(* retourne tabObjets actualise avec les variables et leur methode automatiquement cree la cas echeant *)
+let vc_lChamp lChamp tabVars tabObjets arborescenceVC = let arboVC = "vc_lChamp"::arborescenceVC in
+  let rec vc_lc lc tabObjets_rec =
+    match lc with
+      | [] -> tabObjets_rec
+      | ch::l -> vc_lc l (vc_champ ch tabVars tabObjets_rec arboVC)
+  in vc_lc lChamp tabObjets
 
 
 (* retourne tabObjets actualise *)
