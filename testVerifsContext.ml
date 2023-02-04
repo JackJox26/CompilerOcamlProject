@@ -110,11 +110,6 @@ let () = print_endline "\n --- test_printTabObjets ---"
 let test_printTabObjets = printTabObjets tabObjets
 
 
-(* TESTS UNITAIRES DES METHODES DE VERIFICATIONS CONTEXTUELLES *)
-let () = print_endline "\n --- test1_variableGetType ---"
-let test1_variableGetType = printType(variableGetType "x" tabChampsElem) (* cas present *)
-
-let () = print_endline "\n --- test2_variableGetType ---"
-let test2_variableGetType = printType(variableGetType "z" tabChampsElem) (* cas non declare *)
-
-(* TODO ... *)
+(* DES TESTS UNITAIRES DES METHODES DE VERIFICATIONS CONTEXTUELLES PEUVENT ETRE EFFECTUE CI DESSOU, EXEMPLE : *)
+let () = print_endline "\n --- test1 ---"
+let () = printType(vc_variable_GetType "x" tabChampsElem)

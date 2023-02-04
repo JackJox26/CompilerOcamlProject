@@ -46,14 +46,14 @@ let parse_with_error lexbuf file_in chan =
     Parse.Error -> (* levée par l'analyseur syntaxique *)
       Printf.fprintf stderr "Syntax error at position %a\n" print_position lexbuf ;
       exit (-1)
-  | VC_Error(arboVC, msg) ->
+  | VC_Error(parcourVC, msg) ->
       Printf.fprintf stderr "Erreur contextuelle: %s\n\n" msg ;
       ( let rec lStringToString ls =
           match ls with
             | [] -> ""
             | [s] -> s
             | s::r -> lStringToString r ^ " > " ^ s
-        in Printf.fprintf stderr "Emplacement dans l'arborecense des VC : %s\n\n" (lStringToString arboVC) ) ;
+        in Printf.fprintf stderr "Emplacement dans l'arborecense des VC : %s\n\n" (lStringToString parcourVC) ) ;
       exit (-1)
   (*| RUN_Error msg -> (* uniquement pour la version interprete *)
      Printf.fprintf stderr "Erreur à l'execution: %s\n" msg;
