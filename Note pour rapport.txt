@@ -1,1 +1,0 @@
-En cas de redéfinition d'un champ dans une classe fille, s'il y a avait déjà une méthode d'accès créée on ne peut pas utiliser de nouveau le mot clef auto (méthode déjà existante avec la même signature sans override)
