@@ -83,18 +83,21 @@ let cmptJumpp () = cmptJump := !cmptJump + 1
 let cmptJumpm () = cmptJump := !cmptJump - 1
 let cmptJumpg () = !cmptJump
 
+(*Generateur de label d etiquette*)
 let genLabelEti() =
     let e = "e" ^ string_of_int (cmptEtig ())
     in
     cmptEtip ();
     e
 
+(*Generateur de label d etiquette de if then else*)
 let genLabelITE() = 
     let i = "i" ^ string_of_int (cmptITEg ())
     in
     cmptITEp ();
     i
 
+(*Generateur de label d etiquette de jump*)
 let genLabelJump() =
     let j = "j" ^ string_of_int (cmptJumpg ())
     in
@@ -119,6 +122,15 @@ let rec traducteur_expType t hash =
         ptm ();
         _str
         ^ "LOAD " ^ (Hashtbl.find (Hashtbl.find hash.champs_types (Hashtbl.find hash.type_objets str1)) str2)
+    |Instance (str, expl) ->
+        (*TODO Creer/allouer une instance de l objet de type str et mettre son adresse en haut de pile, en appelant son constructeur?*)
+        ""
+    |MethodeExpr (exp1, str, expl) ->
+        (*TODO Call la methode associee avec les arguments passes, methode membre, peut etre de this*)
+        ""
+    |MethodeClasse (typ, str, expl) ->
+        (*TODO Call la methode associee avec les arguments passes, methode statique d objet isole?*)
+        ""
     |Plus(exp1, exp2) ->
         let _str =
             (traducteur_expType exp1 hash)
@@ -155,7 +167,26 @@ let rec traducteur_expType t hash =
         ptm ();
         _str 
         ^ "DIV" ^ "\n"
+    |Comp (exp1, op, exp2) ->
+        (*Generer le resultat de la partie droite, puis generer le resultat de la partie gauche*)
+        let _str = 
+            (traducteur_expType exp2 hash)
+            ^ (traducteur_expType exp1 hash)
+        in
+        ptm ();
+        ptm (); 
+        begin
+            (*Comparer les deux parties en fonction de l operateur*)
+            match op with
+            |PGE -> _str ^ "SUPEQ\n"
+            |PG -> _str ^ "SUP\n"
+            |PPE -> _str ^ "INFEQ\n"
+            |PP -> _str ^ "INF\n"
+            |EGAL -> _str ^ "EQUAL\n"
+            |NEGAL -> _str ^ "EQUAL\n" ^ "NOT\n"
+        end
     |Concat(exp1, exp2) ->
+        (*generer le resultat de la partie droite, puis generer le resultat de la partie gauche*)
         let _str =
             (traducteur_expType exp2 hash)
             ^ (traducteur_expType exp1 hash)
@@ -163,8 +194,10 @@ let rec traducteur_expType t hash =
         ptm ();
         ptm ();
         _str 
+        (*Concatener les deux parties*)
         ^ "CONCAT" ^ "\n"
     |MoinsU(exp) ->
+        (*Generer le resultat de la partie droite, puis generer une constante nulle*)
         let _str =
             (traducteur_expType exp hash)
             ^ (traducteur_expType (Cste(0)) hash)
@@ -172,18 +205,22 @@ let rec traducteur_expType t hash =
         ptm ();
         ptm ();
         _str
+        (*Soustraire la partie droite a 0*)
         ^ "SUB" ^ "\n"
     |_ -> ""
 and traducteur_cibleType t exp_d hash =
     match t with 
     Var(str) ->
+        (*generer le resultat de la partie droite*)
         let _str =
             (traducteur_expType exp_d hash)
         in
         ptm ();
         _str
+        (*Affecter le resultat a la partie gauche*)
         ^ "STOREG " ^ (Hashtbl.find hash.adresse_objets str) ^ "\n"
     |ChampCible(str1, str2) ->
+        (*Recuperer la position de l objet dans la pile, puis generer le resultat de la partie droite*)
         let _str =
             (Hashtbl.find hash.adresse_objets str1)
             ^ (traducteur_expType exp_d hash)
@@ -191,7 +228,19 @@ and traducteur_cibleType t exp_d hash =
         ptm ();
         ptm ();
         _str
+        (*Affecter le resultat a la partie gauche*)
         ^ "STORE " ^ (Hashtbl.find (Hashtbl.find hash.champs_types (Hashtbl.find hash.type_objets str1)) str2)
+    |ChampCibleCast(str1, str2, str3) ->
+        (*Recuperer la position de l objet dans la pile, puis generer le resultat de la partie droite*)
+        let _str =
+            (Hashtbl.find hash.adresse_objets str2)
+            ^ (traducteur_expType exp_d hash)
+        in
+        ptm ();
+        ptm ();
+        _str
+        (*Affecter le resultat a la partie gauche*)
+        ^ "STORE " ^ (Hashtbl.find (Hashtbl.find hash.champs_types (Hashtbl.find hash.type_objets str1)) str3)
     |_ -> ""
 and traducteur_instructionType t hash =
     match t with
@@ -211,6 +260,7 @@ let rec traducteur_defmethode label listParam methode hashtable = (*TODO*)
     |"" -> traducteur_bloc methode.corpsMethode hashtable
     |_ -> label ^ ": " ^ traducteur_bloc methode.corpsMethode hashtable
 
+<<<<<<< HEAD
 
 (*générateur code d'un appel de methode
                                         *)
@@ -223,8 +273,9 @@ let traducteur_appelmethode = "" (*TODO*)
                 hashtable = la hashtable du traducteur pour la visibilité des objets*)
 
 let traducteur_bloc b hashtable = "" (*TODO*) (*/!\option : match with None*)
-
-
+=======
+let traducteur_bloc b hashtable = "" (*TODO*)
+>>>>>>> main
 
 (*générateur code du programme
     paramètre : p = ast du programme
@@ -365,9 +416,6 @@ let traducteur_prog p hash =
 
 
 *)
-
-
-
 (*Ancienne version
     List.iter (fun o -> "ALLOC " (*Pour chaque déclaration de type (classe ou objet isolé), allocation de sa table des méthodes dans le tas*)
     ^ match o.corpsObjet with 
