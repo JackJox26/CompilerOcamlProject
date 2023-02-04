@@ -41,6 +41,7 @@ let parse_with_error lexbuf file_in chan =
     (*
     let out = Traducteur.traducteur_prog programme hashtbl in
     *)
+	(*Ligne temporaire tant que le traducteur ne compile pas assez*)
     Printf.fprintf chan "kwa"
   with (* traite exception général ... *)
     Parse.Error -> (* levée par l'analyseur syntaxique *)
@@ -62,7 +63,7 @@ let _ =
     print_endline "usage: compileur programme [-o fichier-de sortie] "
   else
     begin
-      (* si on ne passe pas à l'appel le nom du fichier dans lequel
+      (* si on ne passe pas à l'appel -o nom-de-fichier pour donner un lieu ou
        * ecrire le code produit, on utilise par défaut le fichier "out.txt"
        *)
       let file_out = if ((argc = 4) && (Sys.argv.(2) = "-o")) then Sys.argv.(3) else "out.txt"
