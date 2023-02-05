@@ -44,17 +44,23 @@ let parse_with_error lexbuf file_in chan =
     Printf.fprintf chan "kwa"
   with (* traite exception général ... *)
     Parse.Error -> (* levée par l'analyseur syntaxique *)
-    Printf.fprintf stderr "Syntax error at position %a\n" print_position lexbuf;
-    exit (-1)
-  | VC_Error msg ->
-     Printf.fprintf stderr "Erreur contextuelle: %s\n" msg;
-     exit (-1)
-  | RUN_Error msg -> (* uniquement pour la version interprete *)
+      Printf.fprintf stderr "Syntax error at position %a\n" print_position lexbuf ;
+      exit (-1)
+  | VC_Error(parcourVC, msg) ->
+      Printf.fprintf stderr "Erreur contextuelle: %s\n\n" msg ;
+      ( let rec lStringToString ls =
+          match ls with
+            | [] -> ""
+            | [s] -> s
+            | s::r -> lStringToString r ^ " > " ^ s
+        in Printf.fprintf stderr "Emplacement dans l'arborecense des VC : %s\n\n" (lStringToString parcourVC) ) ;
+      exit (-1)
+  (*| RUN_Error msg -> (* uniquement pour la version interprete *)
      Printf.fprintf stderr "Erreur à l'execution: %s\n" msg;
      exit (-1)
   | MISC_Error msg -> (* pour l'instant juste erreur lexicale *)
      Printf.fprintf stderr "Error: %s\n" msg;
-     exit (-1)
+     exit (-1)*)
 
 let _ =
   let argc = Array.length Sys.argv in

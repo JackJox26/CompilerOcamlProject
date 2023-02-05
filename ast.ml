@@ -79,6 +79,6 @@ type objetType = {
 type progType = (objetType list * blocType)
 
 
-exception VC_Error of string
+exception VC_Error of string list * string
 exception RUN_Error of string
 exception MISC_Error of string
