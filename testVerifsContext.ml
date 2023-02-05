@@ -113,3 +113,42 @@ let test_printTabObjets = printTabObjets tabObjets
 (* DES TESTS UNITAIRES DES METHODES DE VERIFICATIONS CONTEXTUELLES PEUVENT ETRE EFFECTUE CI DESSOU, EXEMPLE : *)
 let () = print_endline "\n --- test1 ---"
 let () = printType(vc_variable_GetType "x" tabChampsElem)
+
+(* Ajout de tous les tests *)
+
+let () = print_endline "\n --- test1_variableGetType ---"
+let test1_variableGetType = printType(variableGetType "x" tabChampsElem) (* cas present *)
+
+let() = print_endline "\n --- test1_methodeMembreGetType ---"
+let test1_methodeMembreGetType = printType(methodeMembreGetType "Integer" "toString" [] tabObjets) (* cas present *)
+
+let () = print_endline "\n --- test1_methodeMembreExists ---"
+let test1_methodeMembreExists = print_endline (string_of_bool(methodeMembreExists "Integer" "toString" [] tabObjets)) (* cas present *)
+
+let () = print_endline "\n --- test1_champMembreGetType ---"
+let test1_champMembreGetType = printType(champMembreGetType "Elem" "x" tabObjets) (* cas present *)
+
+let () = print_endline "\n --- test1_vc_type ---"
+let test1_vc_type = print_endline (vc_type "Integer" tabObjets) (* cas present *)
+
+let () = print_endline "\n --- test1_addVar ---"
+let test1_addVar = printTabVars(addVar ("nomElem","String") tabChampsElem  tabObjets) (* cas present *)
+
+let() = print_endline "\n --- test1_vc_lParam ---"
+let vc_lParam = printTabVars(vc_lParam [("x","Integer")] tabChampsElem tabObjets) (* cas present *)
+
+let () = print_endline "\n --- test1_vc_expr ---"
+let test1_vc_expr = print_endline (vc_expr (Id("x")) tabChampsElem tabObjets) (* cas present *)
+
+(* 
+let printAstTypeList (list) = List.iter (fun x -> print_endline (AstType.toString x)) list
+let() = print_endline "\n --- test1_vc_lExpr ---"
+let test1_vc_lExpr = printAstTypeList (vc_lExpr [Id("x")] (tabChampsElem) (tabObjets)) cas present
+ *)
+
+
+let () = print_endline "\n --- test2_variableGetType ---"
+let test2_variableGetType = printType(variableGetType "z" tabChampsElem) (* cas non declare *)
+
+let() = print_endline "\n --- test2_methodeMembreGetType ---"
+let test2_methodeMembreGetType = printType(methodeMembreGetType "Integer" "toString" ["Integer"] tabObjets) (* cas non declare *)
