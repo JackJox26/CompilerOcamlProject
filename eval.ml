@@ -69,11 +69,6 @@ let vc_methodeMembre_GetType nomObjet nomMethode paramMethode tabObjets parcourA
         with Not_found -> raise (VC_Error (parcourVC, "objet non declaree : " ^ cetteObjet))
       in mmgt_rec nomObjet
 
-(* retourne false s'il n'existe pas de methode avec cette signature *)
-let vc_methodeMembre_Existe nomObjet nomMethode paramMethode tabObjets parcourArboVC = let parcourVC = "vc_methodeMembre_2"::parcourArboVC in
-  try (let _ = vc_methodeMembre_GetType nomObjet nomMethode paramMethode tabObjets parcourVC in true)
-  with VC_Error(_) -> false
-
 
 (* retourne le type du champ *)
 let vc_champMembre_GetType nomObjet nomChamp tabObjets parcourArboVC = let parcourVC = "vc_champMembre"::parcourArboVC in
@@ -240,7 +235,7 @@ and vc_bloc_ResultAffecte bloc tabVars tabObjets parcourArboVC = let parcourVC =
 
 
 (* retourne tabObjets actualise avec la methode cree *)
-let addMethode_GetNewTabObjets methode tabVars tabObjets parcourArboVC = let parcourVC = "addMethode"::parcourArboVC in
+let addMethode_GetNewTabObjets methode tabVars tabObjets parcourArboVC = let parcourVC = ("addMethode("^methode.nomMethode^")")::parcourArboVC in
   let thisObjet = (Hashtbl.find tabVars "this") in
   let listeTypeParam = List.map (fun (nomParam, typeParam) -> typeParam) methode.listParamMethode in
   let typeRetour = match methode.typeRetour with Some(tr) -> vc_type_GetType tr tabObjets parcourVC | None -> "Void"
@@ -251,14 +246,23 @@ let addMethode_GetNewTabObjets methode tabVars tabObjets parcourArboVC = let par
         let prevTypeRetour = vc_methodeMembre_GetType classeParente methode.nomMethode listeTypeParam tabObjets parcourVC
         in
           if(prevTypeRetour=typeRetour) then ()
-          else raise (VC_Error (parcourVC, "une methode Override doit avoir la même signature et le meme type de retour"))
+          else raise (VC_Error (parcourVC, "une methode Override doit avoir la même signature et le meme type de retour (i.e. le meme profil), rappel la surcharge est interdite"))
       with Not_found -> raise(VC_Error(parcourVC, "une methode Override doit etre defini pour une classe ayant une classe parente"))
     else
       match (Hashtbl.find tabObjets thisObjet) with (prev_h, tabMethodes, prev_tabChamps) ->
-        if (vc_methodeMembre_Existe thisObjet methode.nomMethode listeTypeParam tabObjets parcourVC) then
-          raise (VC_Error (parcourVC, "une methode est deja definit avec cette signature dans ce scope"))
-        else
-          (Hashtbl.add tabMethodes methode.nomMethode (listeTypeParam, typeRetour); Hashtbl.replace tabObjets thisObjet (prev_h, tabMethodes, prev_tabChamps))
+        let rec mmgt_rec cetteObjet =
+          try match (Hashtbl.find tabObjets cetteObjet) with
+            | (hopt, tab_m, _) ->
+                try let _ = Hashtbl.find tab_m methode.nomMethode in
+                  raise (VC_Error (parcourVC, "il y a deja une methode avec ce : "^methode.nomMethode^" nom dans ce scope ("^thisObjet^(if(thisObjet!=cetteObjet) then (", heritant de : "^cetteObjet) else "")^"), pour la redefinir utilise le mot clef override (rappel la surcharge est interdite)"))
+                with
+                  Not_found ->
+                    match hopt with
+                      | Some(h) -> mmgt_rec h
+                      | None -> Hashtbl.add tabMethodes methode.nomMethode (listeTypeParam, typeRetour)
+          with Not_found -> raise (VC_Error (parcourVC, "objet non declaree : " ^ cetteObjet))
+        in mmgt_rec thisObjet ;
+        Hashtbl.replace tabObjets thisObjet (prev_h, tabMethodes, prev_tabChamps)
     ) ; tabObjets
 
 (* ne retourne rien *)
@@ -336,11 +340,11 @@ let vc_objet_GetNewTabObjets objet tabObjets parcourArboVC = let parcourVC = ("v
             match objet.oNomHeritage with
               | None -> ()
               | Some(h) -> 
-                begin 
-                  (if(vc_methodeMembre_Existe h "0_constructeur" (vc_lExpr_GetListeTypes objet.listArgsHeritage tabVars tabObjets parcourVC) tabObjets parcourVC) then ()
-                  else raise (VC_Error (parcourVC, "impossible d'herite de l'objet avec ces arguments de construction : " ^ h))) ;
-                  Hashtbl.add tabVars "super" h
-                end
+                begin
+                  try let _ = vc_methodeMembre_GetType h "0_constructeur" (vc_lExpr_GetListeTypes objet.listArgsHeritage tabVars tabObjets parcourVC) tabObjets parcourVC
+                    in Hashtbl.add tabVars "super" h
+                  with VC_Error(_) -> raise (VC_Error (parcourVC, "impossible d'herite de l'objet avec ces arguments de construction : " ^ h))
+                end ;
           end ;
           Hashtbl.add tabMethodes "0_constructeur" ((List.map (fun (_, t) -> t) objet.listParamClasse), objet.nomObjet)
       end ;
