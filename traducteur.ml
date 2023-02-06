@@ -145,8 +145,8 @@ let rec traducteur_expType t hash =
         (*TODO Call la methode associee avec les arguments passes, methode membre, peut etre de this*)
         ""
     |MethodeClasse (typ, str, expl) ->
-        (*TODO Call la methode associee avec les arguments passes, methode statique d objet isole?*)
-        ""
+        traducteur_appelmethode
+        
     |Plus(exp1, exp2) ->
 		(*Generer le resultat de la partie droite, puis generer le resultat de la partie gauche*)
         let _str =
@@ -373,15 +373,15 @@ let traducteur_prog p hashtbl =
 
                                             (*chaque méthode de l'objet*)
                                             let rec concat2 st list h p = 
-                                                match list with
+                                                (match list with
                                                 |[] -> st
-                                                |o::ls ->   let eti2 = genLabelEti in
+                                                |o::ls ->   (let eti2 = genLabelEti in
                                                             let cmptMethodeSClasse = ref 0 in 
-                                                            if m.isOverrideMethode then (cmptMethodeSClasse := !cmptMethodeSClasse + 1; let (pos,label) = Hashtbl.find (Hashtbl.find hashtbl._methodes_types o.nomObjet) m.nomMethode in Hashtbl.replace (Hashtbl.find hashtbl._methodes_types o.nomObjet) m.nomMethode (pos,eti2);)
+                                                            if m.isOverrideMethode then (cmptMethodeSClasse := !cmptMethodeSClasse + 1; let (pos,label) = Hashtbl.find (Hashtbl.find hashtbl._methodes_types o.nomObjet) m.nomMethode in Hashtbl.replace (Hashtbl.find hashtbl._methodes_types o.nomObjet) m.nomMethode (pos,eti2))
                                                                                     else ( match o.oNomHeritage with
                                                                                             |None -> Hashtbl.add (Hashtbl.find hashtbl._methodes_types o.nomObjet) m.nomMethode ((p+1),eti2);     
-                                                                                            |_ -> Hashtbl.add (Hashtbl.find hashtbl._methodes_types o.nomObjet) m.nomMethode ((p+(Hashtbl.length (Hashtbl.find hashtbl._methodes_types o.oNomHeritage)) - !cmptMethodeSClasse),eti2);)
-                                                            concat2 (st ^ (traducteur_defmethode eti2 m.corpsMethode h)) ls h (p+1)
+                                                                                            |_ -> Hashtbl.add (Hashtbl.find hashtbl._methodes_types o.nomObjet) m.nomMethode ((p+(Hashtbl.length (Hashtbl.find hashtbl._methodes_types o.oNomHeritage)) - !cmptMethodeSClasse),eti2))
+                                                            concat2 (st ^ (traducteur_defmethode eti2 m.corpsMethode h)) ls h (p+1)))
                                             in                               
                                             
                                             st ^ (concat2 "" ml hashtable 0)
