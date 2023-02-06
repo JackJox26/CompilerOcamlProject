@@ -317,21 +317,8 @@ let traducteur_appelmethode callfunction hashtable =
                 methode = arbre ast de la methode
                 hashtable = la hashtable du traducteur pour la visibilité des objets*)
 
-<<<<<<< HEAD
 let traducteur_bloc b hashtable = "" (*TODO*) (*/!\option : match with None*)
-<<<<<<< HEAD
-=======
-let traducteur_bloc b hashtable = "" (*TODO*)
->>>>>>> main
-=======
-and traducteur_methode label methode hashtable = (*TODO*)
-    label ^ ": "
-    ^ traducteur_bloc methode.corpsMethode hashtable
 
-and traducteur_bloc b hashtable = "" (*TODO*)
->>>>>>> 123584ba7778fecc58a855fd4f9de95cccb00a2e
-=======
->>>>>>> gabrielle
 
 (*générateur code du programme
     paramètre : p = ast du programme
