@@ -302,12 +302,15 @@ let rec traducteur_defmethode label listParam methode hashtable = (*TODO*)
     |"" -> traducteur_bloc methode.corpsMethode hashtable
     |_ -> label ^ ": " ^ traducteur_bloc methode.corpsMethode hashtable
 
-<<<<<<< HEAD
 
 (*générateur code d'un appel de methode
                                         *)
 
-let traducteur_appelmethode = "" (*TODO*)
+let traducteur_appelmethode callfunction hashtable =
+    let (t, nom, params) = callfunction in 
+    String.concat "" (List.iter (fun p -> traducteur_expType p hashtable) params) ^ 
+    let (p,label) = Hashtable.find (Hashtable.find hashtable._methodes_types t) nom in
+    "DUPN 1\nDUPN 1\nLOAD 0\nLOAD "  ^ p ^ "\nCALL\nPOPN 1\n"
 
 (*générateur code d'une methode
     paramètre : label = label associé à la méhotde
@@ -316,6 +319,7 @@ let traducteur_appelmethode = "" (*TODO*)
 
 <<<<<<< HEAD
 let traducteur_bloc b hashtable = "" (*TODO*) (*/!\option : match with None*)
+<<<<<<< HEAD
 =======
 let traducteur_bloc b hashtable = "" (*TODO*)
 >>>>>>> main
@@ -326,6 +330,8 @@ and traducteur_methode label methode hashtable = (*TODO*)
 
 and traducteur_bloc b hashtable = "" (*TODO*)
 >>>>>>> 123584ba7778fecc58a855fd4f9de95cccb00a2e
+=======
+>>>>>>> gabrielle
 
 (*générateur code du programme
     paramètre : p = ast du programme
@@ -354,52 +360,53 @@ let traducteur_prog p hashtbl =
                                                 Hashtbl.add (Hashtbl.find hashtbl._methodes_types o.nomObjet) "constructeur" (0,eti) ;   
                                                 
                                                 (*constructeur de la super-classe*)
+                                                match o.oNomHeritage with 
+                                                |None -> (traducteur_defmethode eti o.oConstructObjet o.listParam hashtbl ^)      (*/!\ attention ce n'est pas une méthode mais un bloc dans ast*)
+                                                |_ -> (eti ^ ": " ^ traducteur_appelmethode (*param à ajouter*) hashtbl ^ traducteur_defmethode "" o.oConstructObjet o.listParam hashtbl ^) 
+                                                                                                
+                                                (*méthodes de la super-classe*)
                                                 match o.oNomHeritage with
-                                                |None -> traducteur_defmethode eti o.oConstructObjet o.listParam hashtbl ^      (*/!\ attention ce n'est pas une méthode mais un bloc dans ast*)
-                                                |_ -> eti ^ ": " ^ traducteur_appelmethode (*param à ajouter*) hashtbl ^ traducteur_defmethode "" o.oConstructObjet o.listParam hashtbl ^ String.concat "" (
-
-                                                (*TODO : si héritage ajout des méthodes de l'héritage à l'objet*)
-
-                                                (*chaque méthode de l'objet*)
-                                                List.iteri (fun i m ->  let eti2 = genLabelEti in 
-                                                                        Hashtbl.add (Hashtbl.find hashtbl._methodes_types o.nomObjet) m.nomMethode ((i+1),eti2);
+                                                |None -> ("" ^)      
+                                                |_ -> (String.concat "" (Hashtbl.iter (fun nm (p,label) -> if not nm = "constructeur" then Hashtbl.add (Hashtbl.find hashtbl._methodes_types o.nomObjet) nm (p,label)) (Hashtbl.find hashtbl._methodes_types o.oNomHeritage)) ^)
+                                                
+                                                (*chaque méthode de l'objet*)                               
+                                                String.concat "" (
+                                                List.iteri (fun i m ->  let eti2 = genLabelEti in
+                                                                        let cmptMethodeSClasse = ref 0 in 
+                                                                        if m.isOverrideMethode then (cmptMethodeSClasse := !cmptMethodeSClasse + 1; let (p,label) = Hashtbl.find (Hashtbl.find hashtbl._methodes_types o.nomObjet) m.nomMethode in Hashtbl.replace (Hashtbl.find hashtbl._methodes_types o.nomObjet) m.nomMethode (p,eti2);)
+                                                                        else ( match o.oNomHeritage with
+                                                                                |None -> Hashtbl.add (Hashtbl.find hashtbl._methodes_types o.nomObjet) m.nomMethode ((i+1),eti2);     
+                                                                                |_ -> Hashtbl.add (Hashtbl.find hashtbl._methodes_types o.nomObjet) m.nomMethode ((i+(Hashtbl.length (Hashtbl.find hashtbl._methodes_types o.oNomHeritage)) - !cmptMethodeSClasse),eti2); 
+                                                                                                                                                                                                                                                                        )
                                                                         traducteur_defmethode eti2 m.corpsMethode hashtbl ^
-                                                                                                                                                                ) ml ) ^ String.concat "" (
+                                                                                                                                                                                                                                                                                            ) ml ) ^ String.concat "" (
                                                 
                                                 (*Les méthodes des champs auto*)
-                                                List.iteri (fun i c -> let (b,(n,t)) = c in if b then let eti3 = genLabelEti in Hashtbl.add (Hashtbl.find hashtbl._methodes_types o.nomObjet) n ((ml.length+2+i),eti3); traducteur_defmethode eti3 ([],[Membre("this", n)]) hashtbl) cl )
-                                                                                                                                                                                                                                                                                        ) l ) ^
+                                                List.iteri (fun i c -> let (b,(n,t)) = c in if b then let eti3 = genLabelEti in Hashtbl.add (Hashtbl.find hashtbl._methodes_types o.nomObjet) n ((Hashtbl.length (Hashtbl.find hashtbl._methodes_types o.nomObjet)),eti3); traducteur_defmethode eti3 ([],[Membre("this", n)]) hashtbl) cl )
+                                                                                                                                                                                                                                                                                                                            ) l ) ^
                 (*CREATION DES TABLES DES METHODES*)                                                                                                                            
                 "init: " ^ String.concat "" (
                 List.iter (fun o -> "ALLOC " ^
                                     match o.corpsObjet with
                                     |(cl,ml) -> let cmptChampsAuto = ref 0 in
-                                                List.iter (fun i c -> let (b,(n,t)) = c in if b then cmptChampsAuto := !cmptChampsAuto + 1) cl;
+                                                List.iter (fun c -> let (b,(n,t)) = c in if b then cmptChampsAuto := !cmptChampsAuto + 1) cl;
                                                 
+                                                let cmptMethodeOverr = ref 0 in
+                                                List.iter (fun m -> if m.isOverrideMethode then cmptMethodeOverr := !cmptMethodeOverr + 1) ml;
+
                                                 match o.oNomHeritage with
                                                 |None -> (string_of_int (ml.length + !cmptChampsAuto + 1) ^ "\n" ^)
-                                                |_ -> (string_of_int (ml.length + !cmptChampsAuto + (Hashtbl.length (Hashtbl.find hashtbl._methodes_types o.oNomHeritage) ) - 1 + 1) ^ "\n" ^)
+                                                |_ -> (string_of_int (ml.length + !cmptChampsAuto + (Hashtbl.length (Hashtbl.find hashtbl._methodes_types o.oNomHeritage) ) - !cmptMethodeOverr - 1 + 1) ^ "\n" ^)
                                                 
-                                                (*Stockage du constructeur en 0*)
+                                                (*Ajout de la position de la table dans le tableau des adresses*)
                                                 Hashtbl.add hashtbl._adresse_tables_methodes o.nomObjet gpt; ptp;
-                                                "DUPN 1\n" ^
-                                                "PUSHA " ^ let (p,label) = (Hashtbl.find (Hashtbl.find hashtbl._methodes_types o.nomObjet) "constructeur") in label ^ "\n" ^
-                                                "STORE 0\n" ^ 
                                                 
-                                                (*Stockage des méthodes de la super classe*) (*/!\attention aux overrides*)
-                                                match o.oNomHeritage with
-                                                |None -> ("" ^)
-                                                |_ -> (String.concat "" (Hashtbl.iter (fun nm (p2,label2) -> if not nm = "constructeur" then
-                                                                                                            "DUPN 1\n" ^
-                                                                                                            "PUSHA " ^ label2 ^ "\n" ^
-                                                                                                            "STORE " ^ p2 ^ "\n" ^      ) (Hashtbl.find hashtbl._methodes_types o.oNomHeritage)) ^)
-                                                
-                                                (*Stockage des méthodes propres à la classe*)
+                                                (*Stockage des méthodes*)
                                                 String.concat "" (
-                                                List.iter (fun m ->  "DUPN 1\n" ^
-                                                                     "PUSHA " ^ let (p3,label3) = (Hashtbl.find (Hashtbl.find hashtbl._methodes_types o.nomObjet) m.nomMethode) in label3 ^ "\n" ^
-                                                                     "STORE " ^ p3 ^ "\n" ^
-                                                                                                                                                                                                        ) ml ) ^
+                                                Hashtbl.iter (fun nm (p,label) ->  "DUPN 1\n" ^
+                                                                     "PUSHA " ^ label ^ "\n" ^
+                                                                     "STORE " ^ p ^ "\n" ^
+                                                                                              ) (Hashtbl.find hashtbl._methodes_types o.nomObjet) ) ^
                                                 
                                                 (*Maj hashtable des champs*)
                                                 Hashtbl.add hashtbl._champs_types o.nomObjet Hashtbl.create 20;
