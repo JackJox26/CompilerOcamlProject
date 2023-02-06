@@ -1,28 +1,35 @@
-(*hashtbl de couples (nom_objet, position_adresse(dans la pile))*)
+(*Table des adresses des objets (dans la pile)
+hashtbl de couples (nom_objet, position_adresse(dans la pile))*)
 let _adresse_objets = Hashtbl.create 64
 
-(*hashtble de couples (nom_objet, nom_type)*)
+(*Table types des variables
+hashtble de couples (nom_objet, nom_type)*)
 let _type_objets = Hashtbl.create 64
 
-(*hashtbl de couples (nom_type, position_table_methode(dans la pile))*)
+(*Table des adresses des methodes des types (dans la table des methodes du type)
+hashtbl de couples (nom_type, position_table_methode(dans la pile))*)
 let _adresse_tables_methodes = Hashtbl.create 64
 
-(*hasbtbl de couples (nom_type, hashtbl de couples 
+(*Table des champs associes aux types (variables membres)
+hasbtbl de couples (nom_type, hashtbl de couples 
     (nom_champ, position_champ(dans l objet))
 )*)
 let _champs_types = Hashtbl.create 64
 
-(*hashtbl de couples (nom_type, hashtbl de couples 
+(*Table des methodes associees aux types
+hashtbl de couples (nom_type, hashtbl de couples 
     (nom_methode, (position_methode(dans la table des methodes de l objet), nom_procedural_label)
 )*)
 let _methodes_types = Hashtbl.create 64
 
+(* Lignes pour des tests d expresssions*)
 let _ =
     Hashtbl.add _adresse_objets "x" "0";
     Hashtbl.add _adresse_objets "y" "12"
 (*Ca ne sert a rien*)
 let kwa = 1
 
+(*Structure contenant le contexte*)
 type hashtbls = {
     adresse_objets : (string, string) Hashtbl.t;
     type_objets : (string, string) Hashtbl.t;
@@ -31,6 +38,7 @@ type hashtbls = {
     methodes_types : (string, ((string, (string)) Hashtbl.t)) Hashtbl.t
 }
 
+(*Instanciation d une hashtbls*)
 let hashtbl = {
     adresse_objets = _adresse_objets;
     type_objets = _type_objets;
@@ -104,23 +112,31 @@ let genLabelJump() =
     cmptJumpp ();
     j
 
+(*Methode qui traduit une expression en suite d'instructions pour l interprete
+	t : exprType a evaluer
+	hash : hashtbls contenant le contexte*)
 let rec traducteur_expType t hash =
     match t with 
     Cste(i) ->
+		(*Mettre la constante sur la pile*)
         ptp ();
         "PUSHI " ^ string_of_int(i) ^ "\n"
     |Str(str) ->
+		(*Mettre la string dans le tas et mettre son adresse sur la pile*)
         ptp ();
         "PUSHS " ^ str ^ "\n"
     |Id(str) ->
+		(*Mettre la valeur de l Ident str (adresse ou valeur entiere) sur la pile, str doit avoir ete declare au prealable*)
         ptp ();
         "PUSHG " ^ (Hashtbl.find hash.adresse_objets str) ^ "\n"
     |Membre(str1, str2) ->
+		(*Mettre la valeur de l Ident str1 (adresse ou valeur entiere) sur la pile, str1 doit avoir ete declare au prealable*)
         let _str =
             (Hashtbl.find hash.adresse_objets str1)
         in
         ptm ();
         _str
+		(*Mettre la valeur de l element str2 (adresse ou valeur entiere) de str1 sur la pile, str1 doit avoir ete declare au prealable ,str2 doit avoir ete declare comme membre du type de str1 au prealable*)
         ^ "LOAD " ^ (Hashtbl.find (Hashtbl.find hash.champs_types (Hashtbl.find hash.type_objets str1)) str2)
     |Instance (str, expl) ->
         (*TODO Creer/allouer une instance de l objet de type str et mettre son adresse en haut de pile, en appelant son constructeur?*)
@@ -132,6 +148,7 @@ let rec traducteur_expType t hash =
         (*TODO Call la methode associee avec les arguments passes, methode statique d objet isole?*)
         ""
     |Plus(exp1, exp2) ->
+		(*Generer le resultat de la partie droite, puis generer le resultat de la partie gauche*)
         let _str =
             (traducteur_expType exp1 hash)
             ^ (traducteur_expType exp2 hash)
@@ -139,8 +156,10 @@ let rec traducteur_expType t hash =
         ptm ();
         ptm ();
         _str 
+		(*Ajouter la partie gauche et la partie droite et mettre le resultat sur la pile*)
         ^ "ADD" ^ "\n"
     |Moins(exp1, exp2) ->
+		(*Generer le resultat de la partie droite, puis generer le resultat de la partie gauche*)
         let _str =
             (traducteur_expType exp2 hash)
             ^ (traducteur_expType exp1 hash)
@@ -148,8 +167,10 @@ let rec traducteur_expType t hash =
         ptm ();
         ptm ();
         _str 
+		(*Soustraire la partie droite a la partie gauche et mettre le resultat sur la pile*)
         ^ "SUB" ^ "\n"
     |Mult(exp1, exp2) ->
+		(*Generer le resultat de la partie droite, puis generer le resultat de la partie gauche*)
         let _str =
             (traducteur_expType exp1 hash)
             ^ (traducteur_expType exp2 hash)
@@ -157,8 +178,10 @@ let rec traducteur_expType t hash =
         ptm ();
         ptm ();
         _str 
+		(*Multiplier La partie gauche avec la partie droite et mettre le resultat sur la pile*)
         ^ "MUL" ^ "\n"
     |Div(exp1, exp2) ->
+		(*Generer le resultat de la partie droite, puis generer le resultat de la partie gauche*)
         let _str =
             (traducteur_expType exp2 hash)
             ^ (traducteur_expType exp1 hash)
@@ -166,6 +189,7 @@ let rec traducteur_expType t hash =
         ptm ();
         ptm ();
         _str 
+		(*Diviser la partie gauche par la partie droite et mettre le resultat sur la pile*)
         ^ "DIV" ^ "\n"
     |Comp (exp1, op, exp2) ->
         (*Generer le resultat de la partie droite, puis generer le resultat de la partie gauche*)
@@ -176,7 +200,7 @@ let rec traducteur_expType t hash =
         ptm ();
         ptm (); 
         begin
-            (*Comparer les deux parties en fonction de l operateur*)
+            (*Comparer les deux parties en fonction de l operateur et mettre le resultat sur la pile*)
             match op with
             |PGE -> _str ^ "SUPEQ\n"
             |PG -> _str ^ "SUP\n"
@@ -208,6 +232,10 @@ let rec traducteur_expType t hash =
         (*Soustraire la partie droite a 0*)
         ^ "SUB" ^ "\n"
     |_ -> ""
+	
+(*Methode qui traduit en suite d instructions pour l interprete l affectation de la valeur d une expression a une cible
+	t : cibleType a evaluer
+	hash : hashtbls contenant le contexte*)
 and traducteur_cibleType t exp_d hash =
     match t with 
     Var(str) ->
@@ -242,9 +270,23 @@ and traducteur_cibleType t exp_d hash =
         (*Affecter le resultat a la partie gauche*)
         ^ "STORE " ^ (Hashtbl.find (Hashtbl.find hash.champs_types (Hashtbl.find hash.type_objets str1)) str3)
     |_ -> ""
+	
+(*Methode qui traduit en suite d instructions pour l interprete une instruction
+	t : instructionType a evaluer
+	hash : hashtbls contenant le contexte*)
 and traducteur_instructionType t hash =
     match t with
-    Affectation (cible, exp) ->
+	Expr (exp) ->
+		(traducteur_expType exp hash)
+	|Bloc (bloc) ->
+		(traducteur_bloc bloc hash)
+	|IfThenElse(exp, instr1, instr2) ->
+		(*TODO Creer des labels pour les deux cas du if then else, Generer le resultat de l expression et ecrire un JZ suivi d un JUMP*)
+		""
+	|Return ->
+		(*TODO Recuperer la valeur de result et terminer l appel de fonction*)
+		""
+    |Affectation (cible, exp) ->
         (traducteur_cibleType cible exp hash)
     |_ -> ""
 
@@ -272,10 +314,18 @@ let traducteur_appelmethode = "" (*TODO*)
                 methode = arbre ast de la methode
                 hashtable = la hashtable du traducteur pour la visibilité des objets*)
 
+<<<<<<< HEAD
 let traducteur_bloc b hashtable = "" (*TODO*) (*/!\option : match with None*)
 =======
 let traducteur_bloc b hashtable = "" (*TODO*)
 >>>>>>> main
+=======
+and traducteur_methode label methode hashtable = (*TODO*)
+    label ^ ": "
+    ^ traducteur_bloc methode.corpsMethode hashtable
+
+and traducteur_bloc b hashtable = "" (*TODO*)
+>>>>>>> 123584ba7778fecc58a855fd4f9de95cccb00a2e
 
 (*générateur code du programme
     paramètre : p = ast du programme
